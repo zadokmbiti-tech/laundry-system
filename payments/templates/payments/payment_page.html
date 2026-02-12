@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Order Payment</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+    .card {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.1);
+    }
+    .total {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .btn {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      color: white;
+      margin-right: 10px;
+    }
+    .mpesa { background: #22c55e; }
+    .cash { background: #3b82f6; }
+    .bank { background: #9333ea; }
+  </style>
+</head>
+
+<body>
+<div class="card">
+  <h2>Order Payment</h2>
+
+  <p><strong>Order ID:</strong> {{ order.id }}</p>
+  <p><strong>Customer:</strong> {{ customer_name }}</p>
+  <p><strong>Phone:</strong> {{ phone }}</p>
+
+  <div class="total">Total: Ksh {{ order.total_price }}</div>
+
+  <form method="post" action="{% url 'process_payment' order.id %}">
+    {% csrf_token %}
+    <button type="submit" name="method" value="MPESA" class="btn mpesa">Pay with M-Pesa</button>
+    <button type="submit" name="method" value="CASH" class="btn cash">Pay with Cash</button>
+    <button type="submit" name="method" value="BANK" class="btn bank">Pay via Bank</button>
+  </form>
+</div>
+</body>
+</html>
