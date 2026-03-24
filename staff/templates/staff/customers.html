@@ -1,0 +1,80 @@
+{% extends 'staff/base.html' %}
+
+{% block title %}Customer Details{% endblock %}
+
+{% block content %}
+<h4 class="mb-4 fw-bold"><i class="bi bi-people me-2"></i>Customer Details</h4>
+
+<div class="card stat-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Customer Name</th>
+                        <th>Phone Number</th>
+                        <th>Total Orders</th>
+                        <th>Total Spent</th>
+                        <th>Last Order</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% regroup orders by customer_name as customer_list %}
+                    {% for customer in customer_list %}
+                    {% with last_order=customer.list|last %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-dark text-white d-flex align-items-center 
+                                    justify-content-center" style="width:36px;height:36px;font-size:0.9rem;">
+                                    {{ customer.grouper|first|upper }}
+                                </div>
+                                {{ customer.grouper }}
+                            </div>
+                        </td>
+                        <td>{{ last_order.phone_number }}</td>
+                        <td>
+                            <span class="badge bg-primary rounded-pill">
+                                {{ customer.list|length }}
+                            </span>
+                        </td>
+                        <td>
+                            KSh 
+                            {% with total=0 %}
+                                {% for order in customer.list %}
+                                    {% if forloop.last %}
+                                        {{ order.total_price }}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endwith %}
+                        </td>
+                        <td>{{ last_order.created_at|date:"d M Y" }}</td>
+                        <td>
+                            {% if last_order.status == 'received' %}
+                                <span class="badge bg-secondary">Received</span>
+                            {% elif last_order.status == 'washing' %}
+                                <span class="badge bg-info">Washing</span>
+                            {% elif last_order.status == 'drying' %}
+                                <span class="badge bg-primary">Drying</span>
+                            {% elif last_order.status == 'ready' %}
+                                <span class="badge bg-success">Ready</span>
+                            {% elif last_order.status == 'delivered' %}
+                                <span class="badge bg-dark">Delivered</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No customers yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,21 +1,226 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-    <title>Payment Successful</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful — FreshWash</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --navy: #0a1628;
+            --cream: #f5f0e8;
+            --gold: #c9a84c;
+            --gold-light: #e8c96a;
+            --white: #ffffff;
+            --soft-gray: #f8f7f4;
+            --text-dark: #1a1a2e;
+            --text-muted: #6b6b7b;
+            --border: #e8e4dc;
+            --green: #1a7a4f;
+            --green-light: #e8f5ee;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--soft-gray); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
+
+.pwa-back { position:fixed;top:16px;left:16px;z-index:1000;background:rgba(10,22,40,0.85);color:#fff;border:none;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.2); }
+
+        .topbar { background: var(--navy); padding: 18px 60px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--white); text-decoration: none; }
+        .logo span { color: var(--gold); }
+
+        .main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 24px; }
+
+        .success-card {
+            background: var(--white);
+            border-radius: 28px;
+            padding: 60px 48px;
+            max-width: 560px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 8px 48px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+            animation: scaleIn 0.6s ease forwards;
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.94); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .success-icon {
+            width: 90px; height: 90px;
+            background: var(--green-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 28px;
+            animation: popIn 0.5s 0.3s ease both;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .success-icon i { color: var(--green); font-size: 2.4rem; }
+
+        .success-card h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 10px;
+        }
+
+        .success-card > p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-weight: 300;
+            margin-bottom: 36px;
+        }
+
+        .order-details {
+            background: var(--soft-gray);
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-bottom: 36px;
+            text-align: left;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-row:last-child { border-bottom: none; }
+
+        .detail-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+        }
+
+        .detail-value {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .detail-value.highlight {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--gold);
+        }
+
+        .actions { display: flex; flex-direction: column; gap: 12px; }
+
+        .btn-home {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: var(--navy);
+            color: var(--white);
+            padding: 15px 32px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .btn-home:hover { background: #162040; transform: translateY(-1px); }
+
+        .btn-new-order {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: var(--gold);
+            color: var(--navy);
+            padding: 15px 32px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(201,168,76,0.3);
+        }
+
+        .btn-new-order:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+        .btn-view {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: transparent;
+            color: var(--text-muted);
+            padding: 12px 32px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-size: 0.88rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .btn-view:hover { border-color: var(--navy); color: var(--navy); }
+
+        footer { background: var(--navy); padding: 24px 60px; text-align: center; }
+        footer p { font-size: 0.8rem; color: rgba(255,255,255,0.3); }
+
+        @media (max-width: 600px) {
+            .topbar { padding: 16px 20px; }
+            .success-card { padding: 40px 24px; }
+            footer { padding: 20px 24px; }
+        }
+    </style>
 </head>
-<body style="text-align: center; padding-top:80px;">
-    <h2>Payment Successful</h2>
+<body>
+<a class="pwa-back" onclick="history.back();return false;" href="#">
+    <i class="fa-solid fa-arrow-left"></i>
+</a>
+<div class="topbar">
+    <a href="/" class="logo">Fresh<span>Wash</span></a>
+</div>
 
-<b> THANK YOU!!!</b>
-<p>Your order has been received.</p>
+<div class="main">
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="fa-solid fa-check"></i>
+        </div>
 
-<p><strong>Order ID:</strong> {{ order.id }}</p>
-<p><strong>Total:</strong> Ksh {{ order.total_price }}</p>
+        <h1>Payment Successful!</h1>
+        <p>Thank you! Your order has been received and we'll start working on it right away.</p>
 
-<a href="/order/">Place another order</a>
-<a href="/">Back to Home</a>
+        <div class="order-details">
+            <div class="detail-row">
+                <span class="detail-label">Order ID</span>
+                <span class="detail-value">#{{ order.id }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Customer</span>
+                <span class="detail-value">{{ order.customer_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Phone</span>
+                <span class="detail-value">{{ order.phone_number }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Total Paid</span>
+                <span class="detail-value highlight">Ksh {{ order.total_price }}</span>
+            </div>
+        </div>
 
+        <div class="actions">
+            <a href="/order/{{ order.id }}/" class="btn-view"><i class="fa-solid fa-receipt"></i> View Order Details</a>
+            <a href="/order/" class="btn-new-order"><i class="fa-solid fa-plus"></i> Place Another Order</a>
+            <a href="/" class="btn-home"><i class="fa-solid fa-house"></i> Back to Home</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>© 2026 FreshWash Laundry. Thank you for your business!</p>
+</footer>
 
 </body>
 </html>

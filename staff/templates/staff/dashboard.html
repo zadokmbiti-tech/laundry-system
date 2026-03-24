@@ -1,0 +1,560 @@
+{% extends 'staff/base.html' %}
+{% block title %}Staff Dashboard{% endblock %}
+{% block content %}
+
+<style>
+    /* ── Page Header ── */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .page-header h4 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin: 0;
+        letter-spacing: -0.3px;
+    }
+    .page-header p {
+        margin: 2px 0 0;
+        font-size: 0.85rem;
+        color: #888;
+    }
+
+    /* ── Action Buttons ── */
+    .action-bar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 28px;
+    }
+    .btn {
+        padding: 9px 18px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+    .btn-purple  { background: #1a1a2e; color: #fff; }
+    .btn-purple:hover { background: #16213e; transform: translateY(-1px); }
+    .btn-secondary { background: #f0f0f5; color: #444; }
+    .btn-secondary:hover { background: #e0e0ea; }
+    .btn-dark { background: #444; color: #fff; }
+    .btn-dark:hover { background: #222; }
+    .btn-success { background: #10b981; color: #fff; }
+    .btn-success:hover { background: #059669; }
+
+    /* ── Stat Cards Grid ── */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 28px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 22px 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #f0f0f5;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+    .stat-card .info p {
+        font-size: 0.8rem;
+        color: #888;
+        margin: 0 0 4px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .stat-card .info h3 {
+        font-size: 1.9rem;
+        font-weight: 800;
+        margin: 0;
+        color: #1a1a2e;
+        line-height: 1;
+    }
+    .stat-card .info small {
+        font-size: 0.78rem;
+        color: #aaa;
+        margin-top: 4px;
+        display: block;
+    }
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    .icon-blue   { background: #eff6ff; }
+    .icon-teal   { background: #f0fdfa; }
+    .icon-green  { background: #f0fdf4; }
+
+    /* Status mini cards */
+    .status-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 18px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-top: 3px solid transparent;
+        border: 1px solid #f0f0f5;
+        border-top-width: 3px;
+        transition: transform 0.2s;
+    }
+    .status-card:hover { transform: translateY(-2px); }
+    .status-card.received  { border-top-color: #94a3b8; }
+    .status-card.washing   { border-top-color: #38bdf8; }
+    .status-card.ready     { border-top-color: #4ade80; }
+    .status-card.delivered { border-top-color: #1a1a2e; }
+    .status-card p { font-size: 0.78rem; color: #888; margin: 0 0 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-card h4 { font-size: 2rem; font-weight: 800; margin: 0; color: #1a1a2e; }
+
+    /* ── Tables ── */
+    .table-card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        margin-bottom: 24px;
+        border: 1px solid #f0f0f5;
+    }
+    .table-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .table-card-header h5 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin: 0;
+    }
+    .limit-btns { display: flex; gap: 6px; }
+    .limit-btn {
+        padding: 5px 14px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1.5px solid #e0e0ea;
+        color: #555;
+        background: #fff;
+        transition: all 0.2s;
+    }
+    .limit-btn:hover, .limit-btn.active {
+        background: #1a1a2e;
+        color: #fff;
+        border-color: #1a1a2e;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.87rem;
+    }
+    .data-table thead tr {
+        background: #f8f8fc;
+    }
+    .data-table thead th {
+        padding: 11px 14px;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #eee;
+    }
+    .data-table tbody tr {
+        border-bottom: 1px solid #f5f5f8;
+        transition: background 0.15s;
+    }
+    .data-table tbody tr:hover { background: #fafafa; }
+    .data-table tbody td {
+        padding: 12px 14px;
+        color: #333;
+        vertical-align: middle;
+    }
+    .data-table tbody tr:last-child { border-bottom: none; }
+
+    /* Badges */
+    .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+    .badge-received  { background: #f1f5f9; color: #64748b; }
+    .badge-washing   { background: #e0f2fe; color: #0369a1; }
+    .badge-drying    { background: #ede9fe; color: #6d28d9; }
+    .badge-ready     { background: #dcfce7; color: #166534; }
+    .badge-delivered { background: #1a1a2e; color: #fff; }
+
+    /* Update button */
+    .btn-update {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border: 1.5px solid #1a1a2e;
+        color: #1a1a2e;
+        background: transparent;
+        text-decoration: none;
+        transition: all 0.2s;
+        cursor: pointer;
+        display: inline-block;
+    }
+    .btn-update:hover { background: #1a1a2e; color: #fff; }
+
+    /* Payment status select */
+    .pay-select {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border: 1.5px solid #ddd;
+        cursor: pointer;
+        background: #fff;
+        min-width: 110px;
+    }
+    .pay-select.paid    { border-color: #4ade80; color: #166534; background: #dcfce7; }
+    .pay-select.pending { border-color: #fbbf24; color: #92400e; background: #fef3c7; }
+    .pay-select.failed  { border-color: #f87171; color: #991b1b; background: #fee2e2; }
+
+    .empty-row td {
+        text-align: center;
+        color: #aaa;
+        padding: 32px;
+        font-style: italic;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(2px);
+    }
+    .modal-box {
+        background: #fff;
+        border-radius: 16px;
+        padding: 32px;
+        width: 420px;
+        max-width: 92vw;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+        animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn {
+        from { opacity: 0; transform: translateY(16px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-box h5 { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; color: #1a1a2e; }
+    .modal-box .sub { font-size: 0.82rem; color: #888; margin: 0 0 22px; }
+    .modal-label { font-size: 0.75rem; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+    .radio-group { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .radio-btn input[type="radio"] { display: none; }
+    .radio-btn label {
+        padding: 7px 16px;
+        border-radius: 7px;
+        border: 1.5px solid #e0e0ea;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #555;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: block;
+    }
+    .radio-btn input[type="radio"]:checked + label {
+        background: #1a1a2e;
+        color: #fff;
+        border-color: #1a1a2e;
+    }
+    .modal-divider { border: none; border-top: 1px solid #eee; margin: 20px 0; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+    .btn-cancel {
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1.5px solid #ddd;
+        background: #fff;
+        color: #555;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-cancel:hover { background: #f5f5f8; }
+    .btn-download {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: #10b981;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-download:hover { background: #059669; }
+
+    /* table overflow wrapper */
+    .table-wrap { overflow-x: auto; }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h4>Dashboard Overview</h4>
+        <p>Welcome back — here's what's happening today.</p>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="action-bar">
+    <a href="/orders/order/" class="btn btn-purple">&#43; New Order</a>
+    <a href="{% url 'customer_details' %}" class="btn btn-secondary">&#128100; Customers</a>
+    <a href="{% url 'staff_dashboard' %}" class="btn btn-dark">&#8635; Refresh</a>
+    <button onclick="document.getElementById('reportModal').style.display='flex'" class="btn btn-success">
+        &#128196; Generate Report
+    </button>
+</div>
+
+<!-- Report Modal -->
+<div id="reportModal" class="modal-overlay">
+    <div class="modal-box">
+        <h5>&#128202; Generate Report</h5>
+        <p class="sub">Select a period and export format</p>
+
+        <form method="GET" action="{% url 'generate_report' %}">
+            <div class="modal-label">Period</div>
+            <div class="radio-group">
+                <div class="radio-btn">
+                    <input type="radio" name="period" id="p_daily" value="daily" checked>
+                    <label for="p_daily">Daily</label>
+                </div>
+                <div class="radio-btn">
+                    <input type="radio" name="period" id="p_weekly" value="weekly">
+                    <label for="p_weekly">Weekly</label>
+                </div>
+                <div class="radio-btn">
+                    <input type="radio" name="period" id="p_monthly" value="monthly">
+                    <label for="p_monthly">Monthly</label>
+                </div>
+            </div>
+
+            <div class="modal-label">Export Format</div>
+            <div class="radio-group">
+                <div class="radio-btn">
+                    <input type="radio" name="format" id="f_csv" value="csv" checked>
+                    <label for="f_csv">&#11015; CSV</label>
+                </div>
+                <div class="radio-btn">
+                    <input type="radio" name="format" id="f_print" value="print">
+                    <label for="f_print">&#128438; Print</label>
+                </div>
+            </div>
+
+            <hr class="modal-divider">
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel"
+                        onclick="document.getElementById('reportModal').style.display='none'">
+                    Cancel
+                </button>
+                <button type="submit" class="btn-download">Download Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('reportModal').addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
+</script>
+
+<!-- Main Stat Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="info">
+            <p>Total Orders</p>
+            <h3>{{ total_orders }}</h3>
+            <small>Today: {{ today_orders }}</small>
+        </div>
+        <div class="stat-icon icon-blue">&#128722;</div>
+    </div>
+    <div class="stat-card">
+        <div class="info">
+            <p>Today's Customers</p>
+            <h3>{{ total_customers }}</h3>
+        </div>
+        <div class="stat-icon icon-teal">&#128100;</div>
+    </div>
+    <div class="stat-card">
+        <div class="info">
+            <p>Today's Revenue</p>
+            <h3>KSh {{ today_revenue }}</h3>
+        </div>
+        <div class="stat-icon icon-green">&#128184;</div>
+    </div>
+</div>
+
+<!-- Status Cards -->
+<div class="status-grid">
+    <div class="status-card received">
+        <p>Received</p>
+        <h4>{{ received_orders }}</h4>
+    </div>
+    <div class="status-card washing">
+        <p>Washing</p>
+        <h4>{{ washing_orders }}</h4>
+    </div>
+    <div class="status-card ready">
+        <p>Ready</p>
+        <h4>{{ ready_orders }}</h4>
+    </div>
+    <div class="status-card delivered">
+        <p>Delivered</p>
+        <h4>{{ delivered_orders }}</h4>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="table-card">
+    <div class="table-card-header">
+        <h5>&#128722; Latest Orders</h5>
+        <div class="limit-btns">
+            <span style="font-size:0.8rem;color:#888;align-self:center;margin-right:4px;">Show:</span>
+            <a href="?limit=10"  class="limit-btn {% if limit == '10' %}active{% endif %}">10</a>
+            <a href="?limit=100" class="limit-btn {% if limit == '100' %}active{% endif %}">100</a>
+            <a href="?limit=all" class="limit-btn {% if limit == 'all' %}active{% endif %}">All</a>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td style="color:#aaa;font-size:0.8rem;">#{{ order.id }}</td>
+                    <td style="font-weight:600;">{{ order.customer_name }}</td>
+                    <td style="color:#666;">{{ order.phone_number }}</td>
+                    <td style="font-weight:600;">KSh {{ order.total_price }}</td>
+                    <td>
+                        {% if order.status == 'received' %}
+                            <span class="badge badge-received">Received</span>
+                        {% elif order.status == 'washing' %}
+                            <span class="badge badge-washing">Washing</span>
+                        {% elif order.status == 'drying' %}
+                            <span class="badge badge-drying">Drying</span>
+                        {% elif order.status == 'ready' %}
+                            <span class="badge badge-ready">Ready</span>
+                        {% elif order.status == 'delivered' %}
+                            <span class="badge badge-delivered">Delivered</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:#888;">{{ order.created_at|date:"d M Y" }}</td>
+                    <td>
+                        <a href="{% url 'update_order' order.id %}" class="btn-update">&#9998; Update</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="7">No orders yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Payments Table -->
+<div class="table-card">
+    <div class="table-card-header">
+        <h5>&#128184; Payments</h5>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Order</th>
+                    <th>Method</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                <tr>
+                    <td style="color:#aaa;font-size:0.8rem;">#{{ payment.id }}</td>
+                    <td style="font-weight:600;">Order {{ payment.order.id }} — {{ payment.order.customer_name }}</td>
+                    <td style="color:#666;">{{ payment.get_payment_method_display }}</td>
+                    <td style="font-weight:600;">KSh {{ payment.amount }}</td>
+                    <td>
+                        <form method="post" action="{% url 'payments:update_payment_status' payment.id %}">
+                            {% csrf_token %}
+                            <select name="status" onchange="this.form.submit()"
+                                    class="pay-select {{ payment.status }}">
+                                <option value="paid"    {% if payment.status == 'paid' %}selected{% endif %}>✅ Paid</option>
+                                <option value="pending" {% if payment.status == 'pending' %}selected{% endif %}>⏳ Pending</option>
+                                <option value="failed"  {% if payment.status == 'failed' %}selected{% endif %}>❌ Failed</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td style="color:#888;">{{ payment.paid_at|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="6">No payments yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

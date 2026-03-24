@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ period|capfirst }} Report — {{ today }}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; color: #222; }
+    h1 { font-size: 20px; } table { width:100%; border-collapse:collapse; margin-top:1rem; }
+    th { background:#111; color:#fff; padding:8px 12px; text-align:left; font-size:13px; }
+    td { padding:8px 12px; border-bottom:1px solid #eee; font-size:13px; }
+    .summary { display:flex; gap:2rem; margin:1rem 0; }
+    .stat { background:#f5f5f5; border-radius:8px; padding:12px 20px; }
+    .stat span { display:block; font-size:12px; color:#666; }
+    .stat strong { font-size:20px; }
+    @media print { button { display:none; } }
+  </style>
+</head>
+<body>
+  <h1>{{ period|capfirst }} Report &mdash; {{ start }} to {{ today }}</h1>
+  <div class="summary">
+    <div class="stat"><span>Total Revenue</span><strong>KSh {{ revenue }}</strong></div>
+    <div class="stat"><span>Total Orders</span><strong>{{ orders.count }}</strong></div>
+    {% for status, count in by_status.items %}
+    <div class="stat"><span>{{ status }}</span><strong>{{ count }}</strong></div>
+    {% endfor %}
+  </div>
+  <table>
+    <thead><tr><th>#</th><th>Customer</th><th>Phone</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+    <tbody>
+      {% for o in orders %}
+      <tr>
+        <td>{{ o.id }}</td><td>{{ o.customer.name }}</td><td>{{ o.customer.phone }}</td>
+        <td>KSh {{ o.total }}</td><td>{{ o.get_status_display }}</td>
+        <td>{{ o.created_at|date:"d M Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <button onclick="window.print()" style="margin-top:1.5rem; padding:8px 20px; background:#111; color:#fff; border:none; border-radius:8px; cursor:pointer;">
+    🖨 Print
+  </button>
+</body>
+</html>

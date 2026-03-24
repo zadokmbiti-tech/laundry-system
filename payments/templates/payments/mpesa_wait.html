@@ -1,20 +1,58 @@
+{% load pwa %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Waiting for M-Pesa</title>
-  <meta http-equiv="refresh" content="5">
-  <style>
-    body {
-      font-family: Arial;
-      background: #f9fafb;
-      text-align: center;
-      padding-top: 100px;
-    }
-  </style>
+    {% progressive_web_app_meta %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="5">
+    <title>M-Pesa Payment — FreshWash</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --navy:#0a1628;--gold:#c9a84c;--soft-gray:#f8f7f4;--text-dark:#1a1a2e;--text-muted:#6b6b7b;--border:#e8e4dc;--green:#1a7a4f;--green-light:#e8f5ee; }
+        * { margin:0;padding:0;box-sizing:border-box; }
+        body { font-family:'DM Sans',sans-serif;background:var(--soft-gray);color:var(--text-dark);min-height:100vh;display:flex;flex-direction:column; }
+        .pwa-back { position:fixed;top:16px;left:16px;z-index:1000;background:rgba(10,22,40,0.85);color:#fff;border:none;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.2); }
+        .topbar { background:var(--navy);padding:18px 60px;display:flex;justify-content:center; }
+        .logo { font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff;text-decoration:none; }
+        .logo span { color:var(--gold); }
+        .main { flex:1;display:flex;align-items:center;justify-content:center;padding:60px 24px; }
+        .card { background:#fff;border-radius:28px;padding:52px 48px;max-width:500px;width:100%;text-align:center;box-shadow:0 8px 48px rgba(0,0,0,0.08);border:1px solid var(--border); }
+        .phone-icon { width:90px;height:90px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 28px;animation:pulse 1.5s infinite; }
+        .phone-icon i { color:var(--green);font-size:2.4rem; }
+        @keyframes pulse { 0%,100%{transform:scale(1);}50%{transform:scale(1.08);} }
+        h1 { font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--navy);margin-bottom:12px; }
+        p { color:var(--text-muted);font-size:.95rem;line-height:1.7;margin-bottom:16px; }
+        .spinner { display:flex;align-items:center;justify-content:center;gap:8px;color:var(--text-muted);font-size:.85rem;margin-top:8px; }
+        .dot { width:8px;height:8px;border-radius:50%;background:var(--gold);animation:bounce .8s infinite alternate; }
+        .dot:nth-child(2){animation-delay:.2s;} .dot:nth-child(3){animation-delay:.4s;}
+        @keyframes bounce{from{opacity:.3;transform:translateY(0);}to{opacity:1;transform:translateY(-6px);}}
+        footer { background:var(--navy);padding:24px 60px;text-align:center; }
+        footer p { font-size:.8rem;color:rgba(255,255,255,.3); }
+    </style>
 </head>
 <body>
-  <h2>📲 Check your phone</h2>
-  <p>Enter your M-Pesa PIN to complete payment.</p>
-  <p>This page will update automatically.</p>
+
+<a class="pwa-back" onclick="history.back();return false;" href="#">
+    <i class="fa-solid fa-arrow-left"></i>
+</a>
+
+<div class="topbar"><a href="/" class="logo">Fresh<span>Wash</span></a></div>
+
+<div class="main">
+    <div class="card">
+        <div class="phone-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+        <h1>Check Your Phone</h1>
+        <p>An M-Pesa prompt has been sent to your phone.<br>Enter your PIN to complete the payment.</p>
+        <p>This page refreshes automatically every 5 seconds.</p>
+        <div class="spinner">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <span>Waiting for payment...</span>
+        </div>
+    </div>
+</div>
+
+<footer><p>© 2026 FreshWash Laundry. All rights reserved.</p></footer>
 </body>
 </html>

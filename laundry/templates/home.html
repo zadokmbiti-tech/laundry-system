@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+{% load pwa %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% progressive_web_app_meta %}
+    <title>FreshWash Laundry — Premium Cleaning Services</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --navy: #0a1628;
+            --cream: #f5f0e8;
+            --gold: #c9a84c;
+            --gold-light: #e8c96a;
+            --white: #ffffff;
+            --soft-gray: #f8f7f4;
+            --text-dark: #1a1a2e;
+            --text-muted: #6b6b7b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--soft-gray);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            padding: 20px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 22, 40, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(201, 168, 76, 0.2);
+        }
+
+        .nav-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-logo span { color: var(--gold); }
+
+        .nav-links { display: flex; gap: 36px; align-items: center; }
+
+        .nav-links a {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--gold); }
+
+        .nav-cta {
+            background: var(--gold) !important;
+            color: var(--navy) !important;
+            padding: 10px 24px !important;
+            border-radius: 30px;
+            font-weight: 500 !important;
+            transition: all 0.3s !important;
+        }
+
+        .nav-cta:hover {
+            background: var(--gold-light) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(201, 168, 76, 0.4) !important;
+        }
+
+        .hero {
+            min-height: 100vh;
+            background: var(--navy);
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -200px; right: -200px;
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -150px; left: -100px;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 0 60px;
+            max-width: 700px;
+            animation: fadeUp 1s ease forwards;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(201,168,76,0.15);
+            border: 1px solid rgba(201,168,76,0.3);
+            color: var(--gold);
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 900;
+            color: var(--white);
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 em {
+            font-style: italic;
+            color: var(--gold);
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: rgba(255,255,255,0.65);
+            line-height: 1.7;
+            margin-bottom: 40px;
+            max-width: 480px;
+            font-weight: 300;
+        }
+
+        .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--gold);
+            color: var(--navy);
+            padding: 16px 36px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 0.3px;
+            transition: all 0.3s;
+            box-shadow: 0 8px 30px rgba(201,168,76,0.35);
+        }
+
+        .btn-primary:hover {
+            background: var(--gold-light);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(201,168,76,0.45);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: transparent;
+            color: var(--white);
+            padding: 16px 36px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 1rem;
+            border: 1px solid rgba(255,255,255,0.25);
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .hero-image {
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 50%;
+            background: url('https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=800&q=80') center/cover no-repeat;
+            opacity: 0.25;
+            mask-image: linear-gradient(to right, transparent 0%, black 40%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%);
+        }
+
+        .hero-stats {
+            position: absolute;
+            bottom: 60px;
+            left: 60px;
+            right: 60px;
+            display: flex;
+            gap: 48px;
+            z-index: 2;
+            animation: fadeUp 1s 0.3s ease both;
+        }
+
+        .stat {
+            text-align: left;
+        }
+
+        .stat-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--gold);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .trust-bar {
+            background: var(--cream);
+            padding: 20px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 48px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .trust-item i { color: var(--gold); font-size: 1rem; }
+
+       .staff-btn {
+            margin-left: 15px;
+            padding: 10px 18px;
+            background-color: #ffffff;
+            color: #0b0f2a;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+}
+
+        .staff-btn:hover {
+            background-color: #e6e6e6;
+}
+               footer {
+            background: var(--navy);
+            padding: 48px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(201,168,76,0.15);
+        }
+
+        .footer-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            color: var(--white);
+        }
+
+        .footer-logo span { color: var(--gold); }
+
+        footer p {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.35);
+        }
+
+        
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <div class="nav-logo">Fresh<span>Wash</span></div>
+    <div class="nav-links">
+        <a href="{% url 'staff_login' %}" class="staff-btn">Staff Login</a>
+        <a href="{% url 'customer_order' %}" class="nav-cta">Place an Order</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-image"></div>
+    <div class="hero-content">
+        <div class="hero-badge">
+            Fresh Wash Laundry Services
+        </div>
+        <h1>Your Clothes,<br><em>Perfectly</em> Clean</h1>
+        <p>Professional laundry, dry cleaning, and ironing.</br><em><b> Delivery services to your door now available</b></em></br> Fast, reliable, and handled with care.</p>
+        <div class="hero-buttons">
+            <a href="{% url 'customer_order' %}" class="btn-primary">
+                Place an Order
+            </a>
+            <a href="/services/" class="btn-secondary">
+                View Services 
+            </a>
+        </div>
+    </div>
+    <div class="hero-stats">
+        <div class="stat">
+            <div class="stat-label">Happy Customers with 24hr Turnaround and Quality Services Offered</div>
+        </div>
+    </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+    <div class="trust-item"><i class="fa-solid fa-shield-halved"></i> Safe & Insured</div>
+    <div class="trust-item"><i class="fa-solid fa-clock"></i> 24hr Express Available</div>
+    <div class="trust-item"><i class="fa-solid fa-leaf"></i> Eco-Friendly Products</div>
+    <div class="trust-item"><i class="fa-solid fa-truck"></i> Pickup & Delivery Available</div>
+</div>
+<!-- FOOTER -->
+<footer>
+    <div class="footer-logo">Fresh<span>Wash</span></div>
+    <p>© 2026 FreshWash Laundry. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

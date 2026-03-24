@@ -46,7 +46,7 @@
 
   <div class="total">Total: Ksh {{ order.total_price }}</div>
 
-  <form method="post" action="{% url 'process_payment' order.id %}">
+  <form method="post" action="{% url 'payments:process_payment' order.id %}">
     {% csrf_token %}
     <button type="submit" name="method" value="MPESA" class="btn mpesa">Pay with M-Pesa</button>
     <button type="submit" name="method" value="CASH" class="btn cash">Pay with Cash</button>

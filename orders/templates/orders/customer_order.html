@@ -1,147 +1,534 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Place Laundry Order</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place an Order — FreshWash</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --navy: #0a1628;
+            --cream: #f5f0e8;
+            --gold: #c9a84c;
+            --gold-light: #e8c96a;
+            --white: #ffffff;
+            --soft-gray: #f8f7f4;
+            --text-dark: #1a1a2e;
+            --text-muted: #6b6b7b;
+            --border: #e8e4dc;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: url("https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1600&q=80") no-repeat center center fixed;
-            background-size: cover;
-        }
-
-        .overlay {
-            background: rgba(0, 0, 0, 0.6);
+            font-family: 'DM Sans', sans-serif;
+            background: var(--soft-gray);
+            color: var(--text-dark);
             min-height: 100vh;
+        }
+
+        /* TOP BAR */
+        .topbar {
+            background: var(--navy);
+            padding: 18px 60px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            padding: 20px;
         }
 
-        .order-card {
-            background: white;
-            width: 800px;
-            max-width: 95%;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            color: var(--white);
+            text-decoration: none;
         }
 
-        h2 {
-            text-align: center;
+        .logo span { color: var(--gold); }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 0.88rem;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover { color: var(--gold); }
+
+        /* PAGE HEADER */
+        .page-header {
+            background: var(--navy);
+            padding: 48px 60px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0; right: 0;
+            height: 40px;
+            background: var(--soft-gray);
+            border-radius: 40px 40px 0 0;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -100px; right: -100px;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(201,168,76,0.1), transparent 70%);
+            border-radius: 50%;
+        }
+
+        .page-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            color: var(--white);
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header h1 span { color: var(--gold); font-style: italic; }
+
+        .page-header p {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* MAIN LAYOUT */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        .order-grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 28px;
+            align-items: start;
+        }
+
+        /* FORM CARD */
+        .card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 40px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+        }
+
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            color: var(--navy);
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i { color: var(--gold); font-size: 1rem; }
+
+        /* FORM FIELDS */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
             margin-bottom: 20px;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         label {
-            font-weight: bold;
             display: block;
-            margin-bottom: 5px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
         }
 
-        input[type="text"] {
+        input[type="text"],
+        input[type="tel"] {
             width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
+            padding: 14px 18px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            background: var(--soft-gray);
+            transition: all 0.3s;
+            outline: none;
         }
 
-        .services {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            padding: 15px;
-            border-radius: 8px;
-            background: #fafafa;
+        input:focus {
+            border-color: var(--gold);
+            background: var(--white);
+            box-shadow: 0 0 0 4px rgba(201,168,76,0.1);
         }
+
+        /* SERVICES GRID */
+        .services-search {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .services-search input {
+            width: 100%;
+            padding: 12px 18px 12px 42px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            background: var(--soft-gray);
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .services-search input:focus {
+            border-color: var(--gold);
+            background: var(--white);
+        }
+
+        .services-search i {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .services-list {
+            max-height: 420px;
+            overflow-y: auto;
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            background: var(--white);
+        }
+
+        .services-list::-webkit-scrollbar { width: 4px; }
+        .services-list::-webkit-scrollbar-track { background: transparent; }
+        .services-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
         .service-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            padding: 8px;
-            border-bottom: 1px solid #eee;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+            gap: 12px;
         }
 
-        .service-info {
+        .service-item:last-child { border-bottom: none; }
+        .service-item:hover { background: var(--soft-gray); }
+
+        .service-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             flex: 1;
         }
 
-        .quantity {
-            width: 60px;
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            margin-left: 10px;
-        }
-
-        .submit-btn {
-            width: 100%;
-            background: #007BFF;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 16px;
-            margin-top: 20px;
+        .service-checkbox {
+            width: 20px; height: 20px;
+            accent-color: var(--gold);
             cursor: pointer;
+            flex-shrink: 0;
         }
 
-        .submit-btn:hover {
-            background: #0056b3;
+        .service-name {
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            font-weight: 400;
+        }
+
+        .service-price {
+            font-size: 0.82rem;
+            color: var(--gold);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .qty-input {
+            width: 64px;
+            padding: 6px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .qty-input:focus { border-color: var(--gold); }
+
+        /* SIDEBAR */
+        .sidebar { position: sticky; top: 24px; }
+
+        .summary-card {
+            background: var(--navy);
+            border-radius: 24px;
+            padding: 36px;
+            color: var(--white);
+        }
+
+        .summary-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--white);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .summary-selected {
+            min-height: 80px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+
+        .summary-item-name {
+            color: rgba(255,255,255,0.7);
+            flex: 1;
+        }
+
+        .summary-item-price { color: var(--gold); font-weight: 500; }
+
+        .summary-empty {
+            color: rgba(255,255,255,0.3);
+            font-size: 0.85rem;
+            font-style: italic;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .summary-divider {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin: 16px 0;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-total-label {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .summary-total-price {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: var(--gold);
+            color: var(--navy);
+            border: none;
+            border-radius: 14px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 24px;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-submit:hover {
+            background: var(--gold-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(201,168,76,0.4);
+        }
+
+        .trust-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 14px;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.35);
+        }
+
+        @media (max-width: 768px) {
+            .topbar { padding: 16px 20px; }
+            .page-header { padding: 36px 20px 52px; }
+            .page-header h1 { font-size: 1.8rem; }
+            .container { padding: 24px 16px 60px; }
+            .order-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .card { padding: 24px; }
+            .sidebar { position: static; }
         }
     </style>
 </head>
 <body>
 
-<div class="overlay">
-    <div class="order-card">
-        <h2>Place Laundry Order</h2>
-
-        <form method="POST">
-            {% csrf_token %}
-
-            <div class="form-group">
-                <label>Customer Name</label>
-                <input type="text" name="customer_name" required>
-            </div>
-
-            <div class="form-group">
-                <label>Phone Number</label>
-                <input type="text" name="phone_number" required>
-            </div>
-
-            <h3>Select Services</h3>
-            <div class="services">
-                {% for service in services %}
-                <div class="service-item">
-                    <div class="service-info">
-                        <label>
-                            <input type="checkbox" name="services" value="{{ service.id }}">
-                            {{ service.name }} — KES {{ service.price }}
-                        </label>
-                    </div>
-                    <input
-                        class="quantity"
-                        type="number"
-                        name="quantity_{{ service.id }}"
-                        value="1"
-                        min="1">
-                </div>
-                {% endfor %}
-            </div>
-
-            <button type="submit" class="submit-btn">
-                Continue to Payment
-            </button>
-        </form>
-    </div>
+<div class="topbar">
+    <a href="/" class="logo">Fresh<span>Wash</span></a>
+    <a href="/" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
 </div>
 
+<div class="page-header">
+    <h1>Place Your <span>Order</span></h1>
+    <p>Select your services and we'll take care of the rest.</p>
+</div>
+
+<div class="container">
+    <form method="POST" action="">
+        {% csrf_token %}
+        <div class="order-grid">
+
+            <!-- LEFT COLUMN -->
+            <div>
+                <!-- Customer Details -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-title"><i class="fa-solid fa-user"></i> Your Details</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="customer_name">Full Name</label>
+                            <input type="text" id="customer_name" name="customer_name" placeholder="e.g. John kamau" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone_number">Phone Number</label>
+                            <input type="tel" id="phone_number" name="phone_number" placeholder="e.g. 0712 345 678" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div class="card">
+                    <div class="card-title"><i class="fa-solid fa-list-check"></i> Select Services</div>
+                    <div class="services-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="serviceSearch" placeholder="Search services..." oninput="filterServices(this.value)">
+                    </div>
+                    <div class="services-list" id="servicesList">
+                        {% for service in services %}
+                        <div class="service-item" data-name="{{ service.name|lower }}">
+                            <div class="service-item-left">
+                                <input type="checkbox" class="service-checkbox" name="services" value="{{ service.id }}" id="service_{{ service.id }}" onchange="updateSummary()">
+                                <label for="service_{{ service.id }}" class="service-name" style="margin:0;text-transform:none;letter-spacing:0;font-size:0.9rem;color:var(--text-dark);cursor:pointer;">{{ service.name }}</label>
+                            </div>
+                            <span class="service-price">Ksh {{ service.price }}</span>
+                            <input type="number" class="qty-input" name="quantity_{{ service.id }}" value="1" min="1" max="9999" onchange="updateSummary()" style="display:none;" id="qty_{{ service.id }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="sidebar">
+                <div class="summary-card">
+                    <div class="summary-title">Order Summary</div>
+                    <div class="summary-selected" id="summaryItems">
+                        <div class="summary-empty">No services selected yet</div>
+                    </div>
+                    <hr class="summary-divider">
+                    <div class="summary-total">
+                        <span class="summary-total-label">Total</span>
+                        <span class="summary-total-price" id="summaryTotal">Ksh 0</span>
+                    </div>
+                    <button type="submit" class="btn-submit">
+                        <i class="fa-solid fa-arrow-right"></i> Review & Pay
+                    </button>
+                    <div class="trust-note">
+                        <i class="fa-solid fa-lock"></i> Secure & encrypted checkout
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<script>
+    // Store service prices from Django
+    const servicePrices = {
+        {% for service in services %}
+        "{{ service.id }}": { name: "{{ service.name }}", price: {{ service.price }} },
+        {% endfor %}
+    };
+
+    function updateSummary() {
+        const checkboxes = document.querySelectorAll('.service-checkbox:checked');
+        const summaryItems = document.getElementById('summaryItems');
+        const summaryTotal = document.getElementById('summaryTotal');
+
+        // Show/hide qty inputs
+        document.querySelectorAll('.service-checkbox').forEach(cb => {
+            const qty = document.getElementById('qty_' + cb.value);
+            if (qty) qty.style.display = cb.checked ? 'block' : 'none';
+        });
+
+        let total = 0;
+        let html = '';
+
+        if (checkboxes.length === 0) {
+            html = '<div class="summary-empty">No services selected yet</div>';
+        } else {
+            checkboxes.forEach(cb => {
+                const id = cb.value;
+                const qty = parseInt(document.getElementById('qty_' + id)?.value || 1);
+                const service = servicePrices[id];
+                if (service) {
+                    const lineTotal = service.price * qty;
+                    total += lineTotal;
+                    html += `<div class="summary-item">
+                        <span class="summary-item-name">${service.name} ×${qty}</span>
+                        <span class="summary-item-price">Ksh ${lineTotal.toLocaleString()}</span>
+                    </div>`;
+                }
+            });
+        }
+
+        summaryItems.innerHTML = html;
+        summaryTotal.textContent = 'Ksh ' + total.toLocaleString();
+    }
+
+    function filterServices(query) {
+        const items = document.querySelectorAll('.service-item');
+        items.forEach(item => {
+            const name = item.dataset.name || '';
+            item.style.display = name.includes(query.toLowerCase()) ? 'flex' : 'none';
+        });
+    }
+</script>
 </body>
 </html>
