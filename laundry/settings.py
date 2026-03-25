@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'staff',
     'pwa',
     'ussd',
+    'mpesa',
 
 ]
 PWA_APP_NAME = 'LAUNDRY MANAGEMENT SYSTEM'

@@ -47,8 +47,10 @@
 
   <form method="post" action="{% url 'payments:process_payment' order.id %}">
     {% csrf_token %}
-    <button type="submit" name="method" value="MPESA" class="btn mpesa">Pay with M-Pesa</button>
-    <button type="submit" name="method" value="CASH" class="btn cash">Pay with Cash</button>
+<button type="button" class="btn mpesa" onclick="window.location.href='{% url 'mpesa_initiate' order.id %}'">
+  Pay with M-Pesa
+</button>
+<button type="submit" name="method" value="CASH" class="btn cash">Pay with Cash</button>
   </form>
 </div>
 </body>

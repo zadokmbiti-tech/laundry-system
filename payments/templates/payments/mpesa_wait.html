@@ -5,25 +5,24 @@
     {% progressive_web_app_meta %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="5">
     <title>M-Pesa Payment — FreshWash</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --navy:#0a1628;--gold:#c9a84c;--soft-gray:#f8f7f4;--text-dark:#1a1a2e;--text-muted:#6b6b7b;--border:#e8e4dc;--green:#1a7a4f;--green-light:#e8f5ee; }
         * { margin:0;padding:0;box-sizing:border-box; }
-        body { font-family:'DM Sans',sans-serif;background:var(--soft-gray);color:var(--text-dark);min-height:100vh;display:flex;flex-direction:column; }
-        .pwa-back { position:fixed;top:16px;left:16px;z-index:1000;background:rgba(10,22,40,0.85);color:#fff;border:none;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.2); }
+        body { font-family:'DM Sans',system-ui,sans-serif;background:var(--soft-gray);color:var(--text-dark);min-height:100vh;display:flex;flex-direction:column; }
+        .pwa-back { position:fixed;top:16px;left:16px;z-index:1000;background:rgba(10,22,40,0.85);color:#fff;border:none;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,0.2);font-size:1.1rem; }
         .topbar { background:var(--navy);padding:18px 60px;display:flex;justify-content:center; }
-        .logo { font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff;text-decoration:none; }
+        .logo { font-family:Georgia,serif;font-size:1.4rem;color:#fff;text-decoration:none; }
         .logo span { color:var(--gold); }
         .main { flex:1;display:flex;align-items:center;justify-content:center;padding:60px 24px; }
         .card { background:#fff;border-radius:28px;padding:52px 48px;max-width:500px;width:100%;text-align:center;box-shadow:0 8px 48px rgba(0,0,0,0.08);border:1px solid var(--border); }
         .phone-icon { width:90px;height:90px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 28px;animation:pulse 1.5s infinite; }
-        .phone-icon i { color:var(--green);font-size:2.4rem; }
+        .phone-svg { width:40px;height:40px;fill:var(--green); }
         @keyframes pulse { 0%,100%{transform:scale(1);}50%{transform:scale(1.08);} }
-        h1 { font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--navy);margin-bottom:12px; }
+        h1 { font-family:Georgia,serif;font-size:1.8rem;color:var(--navy);margin-bottom:12px; }
         p { color:var(--text-muted);font-size:.95rem;line-height:1.7;margin-bottom:16px; }
+        .timer-text { font-size:.9rem;color:var(--text-muted);margin-bottom:8px; }
+        .timer-text span { font-weight:600;color:var(--navy); }
         .spinner { display:flex;align-items:center;justify-content:center;gap:8px;color:var(--text-muted);font-size:.85rem;margin-top:8px; }
         .dot { width:8px;height:8px;border-radius:50%;background:var(--gold);animation:bounce .8s infinite alternate; }
         .dot:nth-child(2){animation-delay:.2s;} .dot:nth-child(3){animation-delay:.4s;}
@@ -34,18 +33,20 @@
 </head>
 <body>
 
-<a class="pwa-back" onclick="history.back();return false;" href="#">
-    <i class="fa-solid fa-arrow-left"></i>
-</a>
+<a class="pwa-back" onclick="history.back();return false;" href="#">&#8592;</a>
 
 <div class="topbar"><a href="/" class="logo">Fresh<span>Wash</span></a></div>
 
 <div class="main">
     <div class="card">
-        <div class="phone-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+        <div class="phone-icon">
+            <svg class="phone-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-5 17a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm5-4H7V4h10v11z"/>
+            </svg>
+        </div>
         <h1>Check Your Phone</h1>
         <p>An M-Pesa prompt has been sent to your phone.<br>Enter your PIN to complete the payment.</p>
-        <p>This page refreshes automatically every 5 seconds.</p>
+        <p class="timer-text">Checking again in <span id="timer">15</span> seconds...</p>
         <div class="spinner">
             <div class="dot"></div><div class="dot"></div><div class="dot"></div>
             <span>Waiting for payment...</span>
@@ -54,5 +55,34 @@
 </div>
 
 <footer><p>© 2026 FreshWash Laundry. All rights reserved.</p></footer>
+
+<script>
+  const orderId = {{ order_id }};
+  let timeLeft = 15;
+
+  const timerEl = document.getElementById("timer");
+
+  const countdown = setInterval(() => {
+    timeLeft--;
+    if (timerEl) timerEl.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      timeLeft = 15;
+    }
+  }, 1000);
+
+  setInterval(async () => {
+    timeLeft = 15;
+    const res = await fetch(`/payments/mpesa/status/${orderId}/`);
+    const data = await res.json();
+    if (data.status === "success") {
+      clearInterval(countdown);
+      window.location.href = `/payments/success/${orderId}/?receipt=${data.receipt}`;
+    } else if (data.status === "failed") {
+      clearInterval(countdown);
+      window.location.href = `/payments/${orderId}/?error=Payment+failed+or+cancelled`;
+    }
+  }, 15000);
+</script>
+
 </body>
 </html>
