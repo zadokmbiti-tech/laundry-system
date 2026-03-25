@@ -61,9 +61,7 @@ def process_payment(request, order_id):
         if method == "CASH":
             payment.status = "paid"
             payment.save()
-            return render(request, "payments/success.html", {"order": order})
-        elif method == "BANK":
-            return render(request, "payments/bank_details.html", {"order": order})
+            return redirect('payments:receipt', order_id=order.id)
         elif method == "MPESA":
             return render(request, "payments/mpesa_wait.html", {"order": order})
 
@@ -72,3 +70,8 @@ def process_payment(request, order_id):
         "customer_name": order.customer_name,
         "phone": order.phone_number,
     })
+
+
+def receipt(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    return render(request, "payments/receipt.html", {"order": order})

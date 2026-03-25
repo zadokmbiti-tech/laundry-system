@@ -32,7 +32,6 @@
     }
     .mpesa { background: #22c55e; }
     .cash { background: #3b82f6; }
-    .bank { background: #9333ea; }
   </style>
 </head>
 
@@ -50,7 +49,6 @@
     {% csrf_token %}
     <button type="submit" name="method" value="MPESA" class="btn mpesa">Pay with M-Pesa</button>
     <button type="submit" name="method" value="CASH" class="btn cash">Pay with Cash</button>
-    <button type="submit" name="method" value="BANK" class="btn bank">Pay via Bank</button>
   </form>
 </div>
 </body>

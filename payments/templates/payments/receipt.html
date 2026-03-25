@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt — FreshWash</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy:       #0f1628;
+            --navy-mid:   #1a2540;
+            --yellow:     #e8c840;
+            --yellow-dark:#c9a800;
+            --white:      #ffffff;
+            --off-white:  #f7f8fa;
+            --muted:      #6b7a99;
+            --border:     #e4e8f0;
+            --green:      #16a34a;
+            --green-bg:   #f0fdf4;
+        }
+
+        body {
+            background: var(--off-white);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 16px 60px;
+        }
+
+        /* ── TOP BAR ── */
+        .topbar {
+            width: 100%;
+            max-width: 560px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .back-btn {
+            width: 38px; height: 38px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none;
+            color: var(--navy);
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover { background: var(--border); }
+
+        .topbar-logo {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: var(--navy);
+            text-decoration: none;
+        }
+
+        .topbar-logo span { color: var(--yellow-dark); }
+
+        .print-btn {
+            background: var(--navy);
+            color: var(--white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .print-btn:hover { background: var(--navy-mid); }
+
+        /* ── RECEIPT CARD ── */
+        .receipt {
+            background: var(--white);
+            width: 100%;
+            max-width: 560px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            animation: slideUp 0.4s ease both;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── RECEIPT HEADER ── */
+        .receipt-header {
+            background: var(--navy);
+            padding: 32px 32px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .receipt-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0; right: 0;
+            height: 24px;
+            background: var(--white);
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+        }
+
+        .receipt-header::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 200px; height: 200px;
+            background: rgba(232,200,64,0.07);
+            border-radius: 50%;
+        }
+
+        .company-name {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--white);
+            margin-bottom: 2px;
+        }
+
+        .company-name span { color: var(--yellow); }
+
+        .company-tagline {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        /* Success badge */
+        .success-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(22,163,74,0.15);
+            border: 1px solid rgba(22,163,74,0.3);
+            color: #4ade80;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .success-dot {
+            width: 7px; height: 7px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 1.5s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* ── RECEIPT BODY ── */
+        .receipt-body {
+            padding: 8px 32px 32px;
+        }
+
+        /* Receipt meta */
+        .receipt-meta {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 0 20px;
+            border-bottom: 1px dashed var(--border);
+            margin-bottom: 24px;
+        }
+
+        .meta-item label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .meta-item value {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        /* Payment method badge */
+        .method-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .method-MPESA  { background: #e8f5e9; color: #2e7d32; }
+        .method-CASH   { background: #fff8e1; color: #f57f17; }
+        .method-BANK   { background: #e3f2fd; color: #1565c0; }
+
+        /* Customer section */
+        .section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .customer-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .customer-info p {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .customer-info small {
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        /* Services table */
+        .services-table {
+            width: 100%;
+            margin-bottom: 24px;
+        }
+
+        .services-table-header {
+            display: grid;
+            grid-template-columns: 1fr 50px 90px;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--off-white);
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+
+        .services-table-header span {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .services-table-header span:last-child { text-align: right; }
+        .services-table-header span:nth-child(2) { text-align: center; }
+
+        .service-row {
+            display: grid;
+            grid-template-columns: 1fr 50px 90px;
+            gap: 8px;
+            padding: 12px 12px;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+            transition: background 0.15s;
+        }
+
+        .service-row:hover { background: var(--off-white); border-radius: 8px; }
+        .service-row:last-child { border-bottom: none; }
+
+        .service-row .svc-name {
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--navy);
+        }
+
+        .service-row .svc-qty {
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .service-row .svc-price {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--navy);
+            text-align: right;
+        }
+
+        /* Total section */
+        .total-section {
+            background: var(--navy);
+            border-radius: 14px;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .total-section .total-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .total-section .total-amount {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1.7rem;
+            font-weight: 900;
+            color: var(--yellow);
+        }
+
+        /* Footer note */
+        .receipt-footer {
+            text-align: center;
+            padding-top: 4px;
+        }
+
+        .receipt-footer p {
+            font-size: 0.78rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .receipt-footer .thank-you {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 6px;
+        }
+
+        /* Zigzag divider */
+        .zigzag {
+            width: 100%;
+            height: 16px;
+            background:
+                radial-gradient(circle at 10px -2px, transparent 10px, var(--off-white) 10px) -10px 0,
+                radial-gradient(circle at 0px -2px, transparent 10px, var(--off-white) 10px) 0px 0;
+            background-size: 20px 16px;
+            background-repeat: repeat-x;
+            margin: 0 -32px;
+            width: calc(100% + 64px);
+        }
+
+        /* ── ACTION BUTTONS ── */
+        .actions {
+            width: 100%;
+            max-width: 560px;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            animation: slideUp 0.4s 0.15s ease both;
+        }
+
+        .btn-primary {
+            display: block;
+            background: var(--yellow);
+            color: var(--navy);
+            text-align: center;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .btn-primary:hover {
+            background: var(--yellow-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            display: block;
+            background: var(--white);
+            color: var(--navy);
+            text-align: center;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary:hover { background: var(--off-white); }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .topbar, .actions { display: none; }
+            .receipt { box-shadow: none; border-radius: 0; max-width: 100%; }
+        }
+
+        @media (max-width: 480px) {
+            .receipt-body { padding: 8px 20px 24px; }
+            .receipt-header { padding: 24px 20px 28px; }
+            .zigzag { margin: 0 -20px; width: calc(100% + 40px); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <a href="/" class="back-btn">&#8592;</a>
+    <a href="/" class="topbar-logo">Fresh<span>Wash</span></a>
+    <button class="print-btn" onclick="window.print()">&#128438; Print</button>
+</div>
+
+<!-- RECEIPT CARD -->
+<div class="receipt">
+
+    <!-- Header -->
+    <div class="receipt-header">
+        <div class="company-name">Fresh<span>Wash</span></div>
+        <div class="company-tagline">Premium Laundry Services</div>
+        <div class="success-badge">
+            <div class="success-dot"></div>
+            Payment Confirmed
+        </div>
+    </div>
+
+    <!-- Body -->
+    <div class="receipt-body">
+
+        <!-- Receipt meta: ID, date, method -->
+        <div class="receipt-meta">
+            <div class="meta-item">
+                <label>Receipt No.</label>
+                <value>#{{ order.id }}</value>
+            </div>
+            <div class="meta-item" style="text-align:center">
+                <label>Date</label>
+                <value>{{ order.created_at|date:"d M Y" }}</value>
+            </div>
+            <div class="meta-item" style="text-align:right">
+                <label>Payment</label>
+                <value>
+                    {% with payment=order.payment_set.last %}
+                        {% if payment %}
+                            <span class="method-badge method-{{ payment.payment_method }}">
+                                {% if payment.payment_method == "MPESA" %}📱 M-Pesa
+                                {% elif payment.payment_method == "CASH" %}💵 Cash
+                                {% elif payment.payment_method == "BANK" %}🏦 Bank
+                                {% else %}{{ payment.payment_method }}
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    {% endwith %}
+                </value>
+            </div>
+        </div>
+
+        <!-- Customer -->
+        <div class="section-title">Customer</div>
+        <div class="customer-row">
+            <div class="customer-info">
+                <p>{{ order.customer_name }}</p>
+                <small>{{ order.phone_number }}</small>
+            </div>
+            <div class="meta-item" style="text-align:right">
+                <label>Status</label>
+                <value style="color:#16a34a; font-weight:700;">✓ Paid</value>
+            </div>
+        </div>
+
+        <!-- Services -->
+        <div class="section-title">Services</div>
+        <div class="services-table">
+            <div class="services-table-header">
+                <span>Service</span>
+                <span>Qty</span>
+                <span style="text-align:right">Amount</span>
+            </div>
+            {% for item in order.items.all %}
+            <div class="service-row">
+                <div class="svc-name">{{ item.service.name }}</div>
+                <div class="svc-qty">{{ item.quantity }}</div>
+                <div class="svc-price">Ksh {{ item.total_price }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Zigzag tear -->
+        <div class="zigzag"></div>
+
+        <!-- Total -->
+        <div class="total-section" style="margin-top:20px">
+            <div class="total-label">Total Paid</div>
+            <div class="total-amount">Ksh {{ order.total_price }}</div>
+        </div>
+
+        <!-- Footer note -->
+        <div class="receipt-footer">
+            <p class="thank-you">Thank you for choosing FreshWash! 🙏</p>
+            <p>Your clothes are in safe hands. We'll notify you when they're ready for pickup.</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="actions">
+    <a href="/orders/" class="btn-primary">+ Place Another Order</a>
+    <a href="/" class="btn-secondary">&#8592; Back to Home</a>
+</div>
+
+</body>
+</html>

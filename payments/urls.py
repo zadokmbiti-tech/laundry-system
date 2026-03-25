@@ -8,4 +8,5 @@ urlpatterns = [
     path("process/<int:order_id>/", views.process_payment, name="process_payment"),
     path("callback/", views.mpesa_callback, name="mpesa_callback"),
     path("update-status/<int:payment_id>/", views.update_payment_status, name="update_payment_status"),
+    path("receipt/<int:order_id>/", views.receipt, name="receipt"),
 ]

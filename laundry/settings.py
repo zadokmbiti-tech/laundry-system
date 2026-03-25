@@ -89,7 +89,14 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+from decouple import config
 
+MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY")
+MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET")
+MPESA_SHORTCODE = config("MPESA_SHORTCODE")
+MPESA_PASSKEY = config("MPESA_PASSKEY")
+MPESA_CALLBACK_URL = config("MPESA_CALLBACK_URL")
+MPESA_ENV = config("MPESA_ENV", default="sandbox")
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
