@@ -182,6 +182,26 @@
             box-shadow: 0 0 0 4px rgba(201,168,76,0.1);
         }
 
+        input.input-error {
+            border-color: #e53e3e !important;
+            background: #fff5f5 !important;
+            box-shadow: 0 0 0 4px rgba(229,62,62,0.1) !important;
+        }
+
+        .field-error {
+            display: none;
+            color: #e53e3e;
+            font-size: 0.78rem;
+            margin-top: 6px;
+            font-weight: 400;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .field-error.visible {
+            display: flex;
+        }
+
         /* SERVICES GRID */
         .services-search {
             position: relative;
@@ -421,12 +441,24 @@
                     <div class="card-title"><i class="fa-solid fa-user"></i> Your Details</div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="customer_name">Full Name</label>
-                            <input type="text" id="customer_name" name="customer_name" placeholder="e.g. John kamau" required>
+                            <label for="customer_name">Full Name <span style="color:#e53e3e;">*</span></label>
+                            <input type="text" id="customer_name" name="customer_name"
+                                   placeholder="e.g. John Kamau"
+                                   autocomplete="name" required>
+                            <div class="field-error" id="name-error">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <span>Full name is required.</span>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="phone_number">Phone Number</label>
-                            <input type="tel" id="phone_number" name="phone_number" placeholder="e.g. 0712 345 678" required>
+                            <label for="phone_number">Phone Number <span style="color:#e53e3e;">*</span></label>
+                            <input type="tel" id="phone_number" name="phone_number"
+                                   placeholder="07XXXXXXXX or +2547XXXXXXXX"
+                                   autocomplete="tel" required>
+                            <div class="field-error" id="phone-error">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <span id="phone-error-msg">Enter a valid number: 07XXXXXXXX or +2547XXXXXXXX</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -486,6 +518,90 @@
         {% endfor %}
     };
 
+    // ── Phone validation ──────────────────────────────────────────────
+    // Valid: 07XXXXXXXX (exactly 10 digits starting with 07)
+    //        +2547XXXXXXXX (exactly 13 chars: +254 + 9 digits starting with 7)
+    const PHONE_REGEX = /^(07\d{8}|\+2547\d{8})$/;
+
+    function validatePhone(value) {
+        const cleaned = value.replace(/\s/g, ''); // strip spaces
+        return PHONE_REGEX.test(cleaned) ? cleaned : null;
+    }
+
+    function showError(inputEl, errorEl, msg) {
+        inputEl.classList.add('input-error');
+        if (msg) document.getElementById(errorEl + '-msg') && (document.getElementById(errorEl + '-msg').textContent = msg);
+        document.getElementById(errorEl).classList.add('visible');
+    }
+
+    function clearError(inputEl, errorElId) {
+        inputEl.classList.remove('input-error');
+        document.getElementById(errorElId).classList.remove('visible');
+    }
+
+    // Live phone feedback as user types
+    const phoneInput = document.getElementById('phone_number');
+    phoneInput.addEventListener('input', function () {
+        const cleaned = this.value.replace(/\s/g, '');
+        if (cleaned === '') {
+            clearError(this, 'phone-error');
+            return;
+        }
+        if (!validatePhone(cleaned)) {
+            showError(this, 'phone-error', 'Enter a valid number: 07XXXXXXXX or +2547XXXXXXXX');
+        } else {
+            clearError(this, 'phone-error');
+        }
+    });
+
+    // Live name feedback
+    const nameInput = document.getElementById('customer_name');
+    nameInput.addEventListener('input', function () {
+        if (this.value.trim() !== '') {
+            clearError(this, 'name-error');
+        }
+    });
+
+    // ── Form submit guard ─────────────────────────────────────────────
+    document.querySelector('form').addEventListener('submit', function (e) {
+        let valid = true;
+
+        // Validate name
+        if (nameInput.value.trim() === '') {
+            showError(nameInput, 'name-error', 'Full name is required.');
+            nameInput.focus();
+            valid = false;
+        } else {
+            clearError(nameInput, 'name-error');
+        }
+
+        // Validate phone
+        const cleaned = phoneInput.value.replace(/\s/g, '');
+        if (cleaned === '') {
+            showError(phoneInput, 'phone-error', 'Phone number is required.');
+            if (valid) phoneInput.focus();
+            valid = false;
+        } else if (!validatePhone(cleaned)) {
+            showError(phoneInput, 'phone-error', 'Enter a valid number: 07XXXXXXXX or +2547XXXXXXXX');
+            if (valid) phoneInput.focus();
+            valid = false;
+        } else {
+            // Normalise value before submit (remove spaces)
+            phoneInput.value = cleaned;
+            clearError(phoneInput, 'phone-error');
+        }
+
+        // Must have at least 1 service
+        const anyChecked = document.querySelectorAll('.service-checkbox:checked').length > 0;
+        if (!anyChecked) {
+            alert('Please select at least one service before placing your order.');
+            valid = false;
+        }
+
+        if (!valid) e.preventDefault();
+    });
+
+    // ── Summary & services ────────────────────────────────────────────
     function updateSummary() {
         const checkboxes = document.querySelectorAll('.service-checkbox:checked');
         const summaryItems = document.getElementById('summaryItems');

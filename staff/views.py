@@ -9,9 +9,11 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from decimal import Decimal
 import csv
+import re
 
-from orders.models import Order
+from orders.models import Order, OrderItem
 from payments.models import Payment
+from services.models import Service
 
 User = get_user_model()
 
@@ -44,7 +46,7 @@ def staff_dashboard(request):
     limit = request.GET.get('limit', '10')
 
     all_orders = Order.objects.all().order_by('-created_at')
-    all_payments = Payment.objects.all().order_by('-paid_at')
+    all_payments = Payment.objects.all().order_by('-created_at')
 
     today = timezone.now().date()
 
@@ -57,10 +59,16 @@ def staff_dashboard(request):
     ready_orders = all_orders.filter(status='ready').count()
     delivered_orders = all_orders.filter(status='delivered').count()
 
-    today_revenue = all_payments.filter(
+    paid_order_ids = all_payments.filter(
         status='paid',
-        paid_at__date=today
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        created_at__date=today
+    ).values_list('order_id', flat=True)
+
+    today_revenue = sum(
+        Order.objects.get(id=oid).total_price()
+        for oid in paid_order_ids
+        if Order.objects.filter(id=oid).exists()
+    ) or Decimal('0.00')
 
     orders = all_orders
     payments = all_payments
@@ -79,13 +87,11 @@ def staff_dashboard(request):
         'orders': orders,
         'payments': payments,
         'limit': limit,
-
         'total_orders': all_orders.count(),
         'today_orders': all_orders.filter(created_at__date=today).count(),
         'total_customers': total_customers,
         'today_revenue': today_revenue,
         'pending_payments': all_payments.filter(status='pending').count(),
-
         'received_orders': received_orders,
         'washing_orders': washing_orders,
         'ready_orders': ready_orders,
@@ -118,20 +124,53 @@ def customer_details(request):
 
 @login_required(login_url='staff_login')
 def create_order(request):
+    services = Service.objects.all()
+    error = None
+
     if request.method == 'POST':
-        customer_name = request.POST.get('customer_name')
-        phone = request.POST.get('phone_number')
-        total = request.POST.get('total_price')
+        customer_name = request.POST.get('customer_name', '').strip()
+        phone = request.POST.get('phone_number', '').strip()
+        service_ids = request.POST.getlist('service[]')
+        quantities = request.POST.getlist('quantity[]')
 
-        Order.objects.create(
-            customer_name=customer_name,
-            phone_number=phone,
-            total_price=total,
-            status='received'
-        )
-        return redirect('staff_dashboard')
+        # Normalize phone to 2547XXXXXXXX
+        if phone.startswith('+'):
+            phone = phone[1:]
+        elif phone.startswith('0'):
+            phone = '254' + phone[1:]
 
-    return render(request, 'staff/create_order.html')
+        # Validate phone
+        if not re.match(r'^254[17]\d{8}$', phone):
+            error = 'Invalid phone number. Use format 0712345678 or +254712345678'
+        elif not customer_name:
+            error = 'Customer name is required.'
+        elif not any(sid for sid in service_ids):
+            error = 'Please add at least one service item.'
+        else:
+            order = Order.objects.create(
+                customer_name=customer_name,
+                phone_number=phone,
+                status='received'
+            )
+            for sid, qty in zip(service_ids, quantities):
+                if sid:
+                    try:
+                        service = Service.objects.get(id=sid)
+                        OrderItem.objects.create(
+                            order=order,
+                            service=service,
+                            quantity=int(qty),
+                            price=service.price,
+                        )
+                    except Service.DoesNotExist:
+                        pass
+            messages.success(request, f'Order #{order.id} created for {customer_name}.')
+            return redirect('staff_dashboard')
+
+    return render(request, 'staff/create_order.html', {
+        'services': services,
+        'error': error,
+    })
 
 
 @login_required(login_url='staff_login')
@@ -149,9 +188,17 @@ def generate_report(request):
         start = today.replace(day=1)
 
     orders = Order.objects.filter(created_at__date__gte=start).order_by('-created_at')
-    payments = Payment.objects.filter(paid_at__date__gte=start, status='paid')
 
-    revenue = payments.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+    paid_order_ids = Payment.objects.filter(
+        created_at__date__gte=start,
+        status='paid'
+    ).values_list('order_id', flat=True)
+
+    revenue = sum(
+        Order.objects.get(id=oid).total_price()
+        for oid in paid_order_ids
+        if Order.objects.filter(id=oid).exists()
+    ) or Decimal('0.00')
 
     by_status = {
         'Received':  orders.filter(status='received').count(),
@@ -170,13 +217,12 @@ def generate_report(request):
                 o.id,
                 o.customer_name,
                 o.phone_number,
-                o.total_price,
+                o.total_price(),
                 o.status,
                 o.created_at.strftime('%d %b %Y'),
             ])
         return response
 
-    # Print/HTML view
     context = {
         'orders': orders,
         'period': period,

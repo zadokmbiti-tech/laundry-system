@@ -1,57 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Order Payment</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      padding: 40px;
-    }
-    .card {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.1);
-    }
-    .total {
-      font-size: 20px;
-      font-weight: bold;
-      margin: 20px 0;
-    }
-    .btn {
-      padding: 12px 18px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      color: white;
-      margin-right: 10px;
-    }
-    .mpesa { background: #22c55e; }
-    .cash { background: #3b82f6; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Payment</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        h2 { font-size: 1.6rem; margin-bottom: 24px; color: #1a1a2e; }
+        .info-row { margin-bottom: 10px; color: #555; font-size: 0.95rem; }
+        .info-row span { font-weight: 600; color: #1a1a2e; }
+        .total {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 20px 0 28px;
+            padding: 16px;
+            background: #f7f9fc;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .messages { margin-bottom: 16px; }
+        .error-msg {
+            background: #fff0f0;
+            color: #c0392b;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border-left: 4px solid #c0392b;
+        }
+        .btn-group { display: flex; gap: 12px; }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.92; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-mpesa { background: #4caf50; color: white; }
+        .btn-cash { background: #5c6bc0; color: white; }
+    </style>
 </head>
-
 <body>
 <div class="card">
-  <h2>Order Payment</h2>
+    <h2>Order Payment</h2>
 
-  <p><strong>Order ID:</strong> {{ order.id }}</p>
-  <p><strong>Customer:</strong> {{ customer_name }}</p>
-  <p><strong>Phone:</strong> {{ phone }}</p>
+    <div class="info-row">Order ID: <span>#{{ order.id }}</span></div>
+    <div class="info-row">Customer: <span>{{ order.customer_name }}</span></div>
+    <div class="info-row">Phone: <span>{{ order.phone_number }}</span></div>
 
-  <div class="total">Total: Ksh {{ order.total_price }}</div>
+    <div class="total">Total: Ksh {{ order.total_price }}</div>
 
-  <form method="post" action="{% url 'payments:process_payment' order.id %}">
-    {% csrf_token %}
-<button type="button" class="btn mpesa" onclick="window.location.href='{% url 'mpesa_initiate' order.id %}'">
-  Pay with M-Pesa
-</button>
-<button type="submit" name="method" value="CASH" class="btn cash">Pay with Cash</button>
-  </form>
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="error-msg">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="btn-group">
+        <!-- M-Pesa button posts to process_payment with method=MPESA -->
+        <form method="POST" action="{% url 'payments:process_payment' order.id %}" style="flex:1">
+            {% csrf_token %}
+            <input type="hidden" name="method" value="MPESA">
+            <button type="submit" class="btn btn-mpesa" style="width:100%">
+                💚 Pay with M-Pesa
+            </button>
+        </form>
+
+        <!-- Cash button posts to process_payment with method=CASH -->
+        <form method="POST" action="{% url 'payments:process_payment' order.id %}" style="flex:1">
+            {% csrf_token %}
+            <input type="hidden" name="method" value="CASH">
+            <button type="submit" class="btn btn-cash" style="width:100%">
+                💵 Pay with Cash
+            </button>
+        </form>
+    </div>
 </div>
 </body>
 </html>

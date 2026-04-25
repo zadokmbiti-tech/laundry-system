@@ -5,7 +5,7 @@ from services.models import Service
 from django.utils import timezone
 
 SERVICES_PER_PAGE = 5
-STAFF_PIN = '0000'
+STAFF_PIN = '0011'
 
 
 def get_services_page(page):

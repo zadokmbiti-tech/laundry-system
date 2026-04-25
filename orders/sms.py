@@ -1,51 +1,74 @@
 import os
-os.environ['PYTHONHTTPSVERIFY'] = '0'
-
 import ssl
+import base64
+
+# ── SSL bypass ────────────────────────────────────────────────────────────────
+os.environ['PYTHONHTTPSVERIFY'] = '0'
+os.environ['REQUESTS_CA_BUNDLE'] = ''
+os.environ['CURL_CA_BUNDLE'] = ''
 ssl._create_default_https_context = ssl._create_unverified_context
+# ─────────────────────────────────────────────────────────────────────────────
 
-import africastalking
+import urllib.request
+import urllib.parse
+import json
+from django.conf import settings
 
-AT_USERNAME = 'sandbox'
-AT_API_KEY  = 'atsk_86b41a4d46f39eed365e617a784ce0caf519d4570a7e24883e9a443e28cc6e0c6d3be670'
 
-def initialize_sms():
-    """Initialize Africa's Talking SDK."""
-    africastalking.initialize(
-        username=AT_USERNAME,
-        api_key=AT_API_KEY,
-    )
-    return africastalking.SMS
+def normalise_phone(phone: str) -> str:
+    """Convert 07XXXXXXXX to +2547XXXXXXXX."""
+    phone = phone.strip().replace(" ", "")
+    if phone.startswith("0"):
+        return "+254" + phone[1:]
+    elif phone.startswith("254"):
+        return "+" + phone
+    elif not phone.startswith("+"):
+        return "+254" + phone
+    return phone
+
+
+def _send_sms(message: str, phone: str) -> bool:
+    """
+    Send SMS via Africa's Talking REST API using Python's built-in
+    urllib (no requests/SDK dependency – bypasses SSL proxy issues).
+    """
+    url = "https://api.sandbox.africastalking.com/version1/messaging"
+
+    payload = urllib.parse.urlencode({
+        "username": settings.AT_USERNAME,
+        "to":       phone,
+        "message":  message,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(url, data=payload, method="POST")
+    req.add_header("apiKey",       settings.AT_API_KEY)
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    req.add_header("Accept",       "application/json")
+
+    # Create an SSL context that skips certificate verification
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
+    with urllib.request.urlopen(req, context=ctx, timeout=15) as resp:
+        body = json.loads(resp.read().decode())
+        print(f"[SMS] Sent to {phone}: {body}")
+        return True
 
 
 def send_order_received_sms(order):
-    """
-    Send SMS to customer when their order is received.
-    Called immediately after a new order is created.
-    """
+    """Send 'Order Received' SMS immediately after a new order is created."""
     try:
-        sms = initialize_sms()
-
-        # Build a summary of services ordered
         items = order.items.select_related('service').all()
         service_list = ', '.join(
             f"{item.service.name} x{item.quantity}" for item in items
         )
-
         message = (
             f"Hi {order.customer_name}, your FreshWash order #{order.id} has been received!\n"
             f"Services: {service_list}\n"
             f"We will notify you when it is ready. Thank you!"
         )
-
-        phone = order.phone_number
-        # Ensure phone is in international format for Kenya (+254...)
-        if phone.startswith('0'):
-            phone = '+254' + phone[1:]
-
-        response = sms.send(message, [phone])
-        print(f"[SMS] Order received sent to {phone}: {response}")
-        return True
+        return _send_sms(message, normalise_phone(order.phone_number))
 
     except Exception as e:
         print(f"[SMS ERROR] Could not send order received SMS: {e}")
@@ -53,26 +76,13 @@ def send_order_received_sms(order):
 
 
 def send_order_ready_sms(order):
-    """
-    Send SMS to customer when their order is ready for pickup.
-    Called when staff updates order status to 'ready'.
-    """
+    """Send 'Order Ready' SMS when staff marks the order ready for pickup."""
     try:
-        sms = initialize_sms()
-
         message = (
             f"Hi {order.customer_name}, your FreshWash order #{order.id} is READY for pickup!\n"
-            f"Pickup address: {order.pickup_address}\n"
             f"Please collect your laundry at your earliest convenience. Thank you!"
         )
-
-        phone = order.phone_number
-        if phone.startswith('0'):
-            phone = '+254' + phone[1:]
-
-        response = sms.send(message, [phone])
-        print(f"[SMS] Order ready sent to {phone}: {response}")
-        return True
+        return _send_sms(message, normalise_phone(order.phone_number))
 
     except Exception as e:
         print(f"[SMS ERROR] Could not send order ready SMS: {e}")

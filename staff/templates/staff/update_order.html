@@ -1,68 +1,252 @@
 {% extends 'staff/base.html' %}
 
-{% block title %}Update Order Status{% endblock %}
+{% block title %}Update Order #{{ order.id }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card stat-card p-4">
-            <h5 class="fw-bold mb-1"><i class="bi bi-pencil-square me-2"></i>Update Order Status</h5>
-            <p class="text-muted mb-4">Order #{{ order.id }} — {{ order.customer_name }}</p>
+<style>
+    .page-header {
+        margin-bottom: 28px;
+    }
+    .page-header h4 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 4px;
+    }
+    .page-header p {
+        color: #888;
+        font-size: 0.9rem;
+    }
 
-            <!-- Order Summary -->
-            <div class="bg-light rounded p-3 mb-4">
-                <div class="row">
-                    <div class="col-6">
-                        <small class="text-muted">Customer</small>
-                        <p class="fw-semibold mb-1">{{ order.customer_name }}</p>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-muted">Phone</small>
-                        <p class="fw-semibold mb-1">{{ order.phone_number }}</p>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-muted">Total</small>
-                        <p class="fw-semibold mb-1">KSh {{ order.total_price }}</p>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-muted">Date</small>
-                        <p class="fw-semibold mb-1">{{ order.created_at|date:"d M Y" }}</p>
-                    </div>
-                </div>
+    .order-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+        overflow: hidden;
+        max-width: 620px;
+    }
 
-                <!-- Order Items -->
-                <hr>
-                <small class="text-muted">Items</small>
-                <ul class="list-unstyled mt-2 mb-0">
-                    {% for item in order.items.all %}
-                    <li class="d-flex justify-content-between">
-                        <span>{{ item.service.name }} x{{ item.quantity }}</span>
-                        <span>KSh {{ item.total_price }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
+    .order-card-header {
+        background: #1a1a2e;
+        color: #fff;
+        padding: 20px 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .order-card-header .order-id {
+        background: rgba(255,255,255,0.12);
+        border-radius: 8px;
+        padding: 4px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    .order-card-header .order-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+
+    .order-card-body { padding: 28px; }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .info-item label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #aaa;
+        margin-bottom: 4px;
+    }
+    .info-item span {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+    .info-item .total-amount {
+        font-size: 1.15rem;
+        color: #16a34a;
+    }
+
+    .divider {
+        border: none;
+        border-top: 1px solid #f0f0f0;
+        margin: 0 0 20px;
+    }
+
+    .items-section label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #aaa;
+        margin-bottom: 12px;
+    }
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background: #f8f9fb;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+    .item-row .item-name { color: #333; font-weight: 500; }
+    .item-row .item-qty {
+        background: #e8eaf0;
+        color: #555;
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-size: 0.78rem;
+        margin-left: 8px;
+    }
+    .item-row .item-price { color: #1a1a2e; font-weight: 600; }
+
+    .form-section {
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #f0f0f0;
+    }
+    .form-section label {
+        display: block;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #888;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    .status-select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e8eaf0;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        color: #1a1a2e;
+        background: #fff;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+    .status-select:focus {
+        outline: none;
+        border-color: #1a1a2e;
+    }
+
+    .btn-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+    .btn-update {
+        flex: 1;
+        padding: 13px;
+        background: #1a1a2e;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+    }
+    .btn-update:hover { background: #16213e; transform: translateY(-1px); }
+    .btn-update:active { transform: translateY(0); }
+
+    .btn-cancel {
+        flex: 1;
+        padding: 13px;
+        background: #f0f0f5;
+        color: #555;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-cancel:hover { background: #e4e4ec; color: #333; }
+</style>
+
+<div class="page-header">
+    <h4>&#9998; Update Order Status</h4>
+    <p>Modify the current processing stage for this order</p>
+</div>
+
+<div class="order-card">
+    <div class="order-card-header">
+        <span class="order-id">#{{ order.id }}</span>
+        <span class="order-title">{{ order.customer_name }}</span>
+    </div>
+
+    <div class="order-card-body">
+        <!-- Info Grid -->
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Customer</label>
+                <span>{{ order.customer_name }}</span>
             </div>
+            <div class="info-item">
+                <label>Phone</label>
+                <span>{{ order.phone_number }}</span>
+            </div>
+            <div class="info-item">
+                <label>Total</label>
+                <span class="total-amount">KSh {{ order.total_price }}</span>
+            </div>
+            <div class="info-item">
+                <label>Date</label>
+                <span>{{ order.created_at|date:"d M Y" }}</span>
+            </div>
+        </div>
 
-            <!-- Update Form -->
+        <hr class="divider">
+
+        <!-- Items -->
+        <div class="items-section">
+            <label>Order Items</label>
+            {% for item in order.items.all %}
+            <div class="item-row">
+                <div>
+                    <span class="item-name">{{ item.service.name }}</span>
+                    <span class="item-qty">x{{ item.quantity }}</span>
+                </div>
+                <span class="item-price">KSh {{ item.total_price }}</span>
+            </div>
+            {% empty %}
+            <p style="color:#aaa;font-size:0.9rem;">No items found.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Status Form -->
+        <div class="form-section">
             <form method="POST">
                 {% csrf_token %}
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Current Status</label>
-                    <select name="status" class="form-select">
-                        {% for value, label in order.STATUS_CHOICES %}
-                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
-                            {{ label }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-dark flex-grow-1">
-                        <i class="bi bi-check-circle me-1"></i> Update Status
-                    </button>
-                    <a href="{% url 'staff_dashboard' %}" class="btn btn-outline-secondary flex-grow-1">
-                        <i class="bi bi-arrow-left me-1"></i> Cancel
-                    </a>
+                <label>Update Status</label>
+                <select name="status" class="status-select">
+                    {% for value, label in order.STATUS_CHOICES %}
+                    <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="btn-row">
+                    <button type="submit" class="btn-update">&#10003; Update Status</button>
+                    <a href="{% url 'staff_dashboard' %}" class="btn-cancel">&#8592; Cancel</a>
                 </div>
             </form>
         </div>

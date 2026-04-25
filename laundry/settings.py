@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
+from decouple import config
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 SECRET_KEY = 'django-insecure-utclz(o!8y6@$1nxz$$oq3se6r0vocj-vk=!k9k1x^kb31fk53'
 
 DEBUG = True
@@ -18,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
 
     'accounts',
     'services',
@@ -26,12 +30,11 @@ INSTALLED_APPS = [
     'staff',
     'pwa',
     'ussd',
-    'mpesa',
-
 ]
+
 PWA_APP_NAME = 'LAUNDRY MANAGEMENT SYSTEM'
-PWA_APP_DESCRIPTION ='A system that digitizes laundry services'
-PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR,'serviceworker.js')
+PWA_APP_DESCRIPTION = 'A system that digitizes laundry services'
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'serviceworker.js')
 PWA_APP_BACKGROUND_COLOR = 'blue'
 PWA_DISPLAY = 'standalone'
 PWA_APP_SCOPE = '/'
@@ -49,23 +52,18 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'laundry.urls'
 
-import os
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-  os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'static'),
 ]
-STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles')
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates',
-                 BASE_DIR / 'laundry' / 'templates',
+        'DIRS': [
+            BASE_DIR / 'templates',
+            BASE_DIR / 'laundry' / 'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -80,48 +78,34 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'laundry.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-from decouple import config
 
-MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY")
-MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET")
-MPESA_SHORTCODE = config("MPESA_SHORTCODE")
-MPESA_PASSKEY = config("MPESA_PASSKEY")
-MPESA_CALLBACK_URL = config("MPESA_CALLBACK_URL")
-MPESA_ENV = config("MPESA_ENV", default="sandbox")
+# ── M-Pesa ────────────────────────────────────────────────────────────────────
+MPESA_CONSUMER_KEY    = '8wGhceuFGAfuwtSNSZNuoMUwCvadwDHKX4EZZ7q9Y307aeAk'
+MPESA_CONSUMER_SECRET = 'bP0lt6Asg77ZagLdg4fEWFafCegtLJ0gTzx4pGxugG1wb64A7vzcQnzDo6r4rU63'
+MPESA_SHORTCODE       = '174379'
+MPESA_PASSKEY         = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
+MPESA_CALLBACK_URL    = 'https://expressless-unsesquipedalian-caren.ngrok-free.dev/payments/mpesa/callback/'
+MPESA_ENV             = config("MPESA_ENV", default="sandbox")
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+# ── Africa's Talking SMS ──────────────────────────────────────────────────────
+AT_USERNAME = config("AT_USERNAME", default="sandbox")
+AT_API_KEY  = config("AT_API_KEY",  default="")
 
+# ── Password validation ───────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-AT_USERNAME = 'sandbox'        
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True

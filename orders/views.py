@@ -72,13 +72,19 @@ def update_order_status(request, order_id):
         new_status = request.POST.get("status")
         old_status = order.status
 
+        print(f"[DEBUG] order={order.id} old_status={old_status} new_status={new_status}")
+
         order.status = new_status
         order.save()
 
         # ✅ Send "Order Ready" SMS when staff marks order as ready
         if new_status == "ready" and old_status != "ready":
-            send_order_ready_sms(order)
+            print(f"[DEBUG] Firing ready SMS to {order.phone_number}")
+            result = send_order_ready_sms(order)
+            print(f"[DEBUG] SMS result: {result}")
+        else:
+            print(f"[DEBUG] SMS not sent — new={new_status}, old={old_status}")
 
         return redirect("staff_dashboard")
 
-    return render(request, "orders/update_status.html", {"order": order})
+    return render(request, "orders/update_order.html", {"order": order})

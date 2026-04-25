@@ -12,5 +12,4 @@ urlpatterns = [
     path('', include('pwa.urls')),
     path('', include('ussd.urls')),
     path('services/', services_view, name='services'),
-    path('payments/mpesa/', include('mpesa.urls')),
 ]

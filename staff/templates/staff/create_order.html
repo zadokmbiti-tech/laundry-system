@@ -13,7 +13,12 @@
         <input type="text" name="customer_name" required><br><br>
 
         <label>Phone:</label>
-        <input type="text" name="phone" required><br><br>
+       <input type="tel" name="phone_number" 
+       pattern="[0-9]{10}" 
+       maxlength="10" 
+       placeholder="0712345678" 
+       title="Enter 10-digit phone number e.g. 0712345678"
+       required><br><br>
 
         <label>Service:</label>
         <input type="text" name="service" required><br><br>
