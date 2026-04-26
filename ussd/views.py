@@ -145,11 +145,9 @@ def ussd_callback(request):
                 response = "END No services available."
 
         # ── PLACE ORDER FLOW ─────────────────────────────────────────────
-        # Got name → ask phone
         elif level == 3 and text_parts[0] == '1' and text_parts[1] == '1':
             response = "CON Enter your Phone Number\n(e.g. 0712345678):"
 
-        # Got phone → show services page 1
         elif level == 4 and text_parts[0] == '1' and text_parts[1] == '1':
             page_services, has_more, _ = get_services_page(1)
             if page_services:
@@ -161,7 +159,6 @@ def ussd_callback(request):
             else:
                 response = "END No services available."
 
-        # Got "More" → show services page 2
         elif level == 5 and text_parts[0] == '1' and text_parts[1] == '1' and text_parts[4] == '6':
             page_services, has_more, _ = get_services_page(2)
             if page_services:
@@ -173,15 +170,12 @@ def ussd_callback(request):
             else:
                 response = "END No more services."
 
-        # Got service from page 1 → ask quantity
         elif level == 5 and text_parts[0] == '1' and text_parts[1] == '1':
             response = "CON Enter Quantity\n(number of items):"
 
-        # Got service from page 2 → ask quantity
         elif level == 6 and text_parts[0] == '1' and text_parts[1] == '1' and text_parts[4] == '6':
             response = "CON Enter Quantity\n(number of items):"
 
-        # Got quantity for page 1 service → create order
         elif level == 6 and text_parts[0] == '1' and text_parts[1] == '1':
             customer_name  = text_parts[2]
             customer_phone = text_parts[3]
@@ -211,7 +205,6 @@ def ussd_callback(request):
             except Exception as e:
                 response = f"END Error: {str(e)}"
 
-        # Got quantity for page 2 service → create order
         elif level == 7 and text_parts[0] == '1' and text_parts[1] == '1' and text_parts[4] == '6':
             customer_name  = text_parts[2]
             customer_phone = text_parts[3]
@@ -263,12 +256,39 @@ def ussd_callback(request):
             try:
                 order = Order.objects.get(id=order_id)
                 total = order.total_price()
-                response  = "END Payment request sent!\n"
-                response += f"Order #{order.id} - KSh {total}\n"
-                response += "Check your phone for M-Pesa prompt.\n"
-                response += "Thank you for using FreshWash!"
+
+                # Format phone number to 2547XXXXXXXX
+                phone = order.phone_number.strip().replace('+', '').replace(' ', '')
+                if phone.startswith('0'):
+                    phone = '254' + phone[1:]
+
+                # Trigger real STK push
+                from payments.mpesa import stk_push
+                from payments.models import Payment, MpesaPayment
+
+                result = stk_push(phone, total, order.id)
+
+                if result.get("ResponseCode") == "0":
+                    MpesaPayment.objects.create(
+                        order_id=order.id,
+                        checkout_request_id=result["CheckoutRequestID"],
+                        merchant_request_id=result["MerchantRequestID"],
+                        amount=total,
+                        phone_number=phone,
+                        status="pending",
+                    )
+                    response  = "END Payment request sent!\n"
+                    response += f"Order #{order.id} - KSh {total}\n"
+                    response += "Check your phone for M-Pesa prompt.\n"
+                    response += "Thank you for using FreshWash!"
+                else:
+                    error = result.get("errorMessage") or result.get("ResponseDescription", "Failed")
+                    response = f"END Payment failed: {error}"
+
             except Order.DoesNotExist:
                 response = f"END Order #{order_id} not found."
+            except Exception as e:
+                response = f"END Payment error: {str(e)}"
 
         # ── FALLBACK ──────────────────────────────────────────────────────
         else:
