@@ -37,8 +37,17 @@ def generate_password():
 def stk_push(phone_number, amount, order_id):
     """
     Triggers STK push to customer phone.
-    phone_number: format 2547XXXXXXXX (no + sign)
+    phone_number: accepts 07XXXXXXXX, 7XXXXXXXX, or 2547XXXXXXXX
     """
+    # Normalize phone number to 2547XXXXXXXX format
+    phone_number = str(phone_number).strip()
+    if phone_number.startswith("0"):
+        phone_number = "254" + phone_number[1:]
+    elif phone_number.startswith("7") or phone_number.startswith("1"):
+        phone_number = "254" + phone_number
+    elif phone_number.startswith("+254"):
+        phone_number = phone_number[1:]
+
     access_token = get_access_token()
     password, timestamp = generate_password()
 
