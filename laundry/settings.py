@@ -4,16 +4,17 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-utclz(o!8y6@$1nxz$$oq3se6r0vocj-vk=!k9k1x^kb31fk53'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-utclz(o!8y6@$1nxz$$oq3se6r0vocj-vk=!k9k1x^kb31fk53')
 
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     'expressless-unsesquipedalian-caren.ngrok-free.dev',
-    'web-production-8348e.up.railway.app'
+    'web-production-8348e.up.railway.app',
 ]
+
 CSRF_TRUSTED_ORIGINS = [
     'https://web-production-8348e.up.railway.app',
 ]
@@ -96,7 +97,7 @@ MPESA_CONSUMER_KEY    = '8wGhceuFGAfuwtSNSZNuoMUwCvadwDHKX4EZZ7q9Y307aeAk'
 MPESA_CONSUMER_SECRET = 'bP0lt6Asg77ZagLdg4fEWFafCegtLJ0gTzx4pGxugG1wb64A7vzcQnzDo6r4rU63'
 MPESA_SHORTCODE       = '174379'
 MPESA_PASSKEY         = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
-MPESA_CALLBACK_URL    = 'MPESA_CALLBACK_URL = 'https://web-production-8348e.up.railway.app/payments/mpesa/callback/''
+MPESA_CALLBACK_URL    = 'https://web-production-8348e.up.railway.app/payments/mpesa/callback/'
 MPESA_ENV             = config("MPESA_ENV", default="sandbox")
 
 # ── Africa's Talking SMS ──────────────────────────────────────────────────────

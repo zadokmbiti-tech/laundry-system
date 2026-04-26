@@ -1,0 +1,20 @@
+# Environment variables
+.env
+
+# Database
+db.sqlite3
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+
+# Static files backup
+staticbackup/
+
+# Django collected static
+staticfiles/
