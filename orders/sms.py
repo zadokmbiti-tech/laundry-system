@@ -1,6 +1,5 @@
 import os
 import ssl
-import base64
 
 # ── SSL bypass ────────────────────────────────────────────────────────────────
 os.environ['PYTHONHTTPSVERIFY'] = '0'
@@ -28,10 +27,6 @@ def normalise_phone(phone: str) -> str:
 
 
 def _send_sms(message: str, phone: str) -> bool:
-    """
-    Send SMS via Africa's Talking REST API using Python's built-in
-    urllib (no requests/SDK dependency – bypasses SSL proxy issues).
-    """
     url = "https://api.sandbox.africastalking.com/version1/messaging"
 
     payload = urllib.parse.urlencode({
@@ -45,7 +40,6 @@ def _send_sms(message: str, phone: str) -> bool:
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
     req.add_header("Accept",       "application/json")
 
-    # Create an SSL context that skips certificate verification
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
@@ -57,18 +51,33 @@ def _send_sms(message: str, phone: str) -> bool:
 
 
 def send_order_received_sms(order):
-    """Send 'Order Received' SMS immediately after a new order is created."""
+    """Send 'Order Received' SMS to customer and notify owner."""
     try:
         items = order.items.select_related('service').all()
         service_list = ', '.join(
             f"{item.service.name} x{item.quantity}" for item in items
         )
-        message = (
+
+        # SMS to customer
+        customer_message = (
             f"Hi {order.customer_name}, your FreshWash order #{order.id} has been received!\n"
             f"Services: {service_list}\n"
             f"We will notify you when it is ready. Thank you!"
         )
-        return _send_sms(message, normalise_phone(order.phone_number))
+        _send_sms(customer_message, normalise_phone(order.phone_number))
+
+        # SMS to owner
+        owner_phone = getattr(settings, 'OWNER_PHONE', None)
+        if owner_phone:
+            owner_message = (
+                f"New order #{order.id} received!\n"
+                f"Customer: {order.customer_name} ({order.phone_number})\n"
+                f"Services: {service_list}\n"
+                f"Total: KES {order.total_price()}"
+            )
+            _send_sms(owner_message, normalise_phone(owner_phone))
+
+        return True
 
     except Exception as e:
         print(f"[SMS ERROR] Could not send order received SMS: {e}")

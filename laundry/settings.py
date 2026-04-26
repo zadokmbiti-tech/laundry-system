@@ -101,8 +101,9 @@ MPESA_CALLBACK_URL    = 'https://freshwashsystem.up.railway.app/payments/mpesa/c
 MPESA_ENV             = config("MPESA_ENV", default="sandbox")
 
 # ── Africa's Talking SMS ──────────────────────────────────────────────────────
-AT_USERNAME = config("AT_USERNAME", default="sandbox")
-AT_API_KEY  = config("AT_API_KEY",  default="")
+AT_USERNAME  = config("AT_USERNAME", default="sandbox")
+AT_API_KEY   = config("AT_API_KEY",  default="")
+OWNER_PHONE  = config("OWNER_PHONE", default="")
 
 # ── Password validation ───────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
