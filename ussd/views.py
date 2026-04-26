@@ -2,6 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from orders.models import Order, OrderItem
 from services.models import Service
+from orders.sms import send_order_received_sms, send_order_ready_sms
 from django.utils import timezone
 
 SERVICES_PER_PAGE = 5
@@ -26,13 +27,11 @@ def ussd_callback(request):
         text_parts = text.split('*') if text else ['']
         level = len(text_parts)
 
-        # ── LEVEL 0 — Main Menu ──────────────────────────────────────────
         if text == '':
             response  = "CON Welcome to FreshWash\n"
             response += "1. Customer Menu\n"
             response += "2. Staff Menu"
 
-        # ── CUSTOMER MENU ────────────────────────────────────────────────
         elif text == '1':
             response  = "CON Customer Menu\n"
             response += "1. Place a New Order\n"
@@ -40,11 +39,9 @@ def ussd_callback(request):
             response += "3. Make a Payment\n"
             response += "4. View Services & Prices"
 
-        # ── STAFF MENU ───────────────────────────────────────────────────
         elif text == '2':
             response = "CON Staff Menu\nEnter your PIN:"
 
-        # ── STAFF PIN CHECK ──────────────────────────────────────────────
         elif level == 2 and text_parts[0] == '2':
             pin = text_parts[1]
             if pin == STAFF_PIN:
@@ -55,7 +52,6 @@ def ussd_callback(request):
             else:
                 response = "END Invalid PIN. Access denied."
 
-        # ── STAFF: VIEW TODAY'S ORDERS ───────────────────────────────────
         elif level == 3 and text_parts[0] == '2' and text_parts[2] == '1':
             today = timezone.now().date()
             orders = Order.objects.filter(created_at__date=today).order_by('-id')[:5]
@@ -66,11 +62,9 @@ def ussd_callback(request):
             else:
                 response = "END No orders today yet."
 
-        # ── STAFF: UPDATE ORDER STATUS — ask order ID ────────────────────
         elif level == 3 and text_parts[0] == '2' and text_parts[2] == '2':
             response = "CON Enter Order ID to update:"
 
-        # ── STAFF: GOT ORDER ID — show status options ────────────────────
         elif level == 4 and text_parts[0] == '2' and text_parts[2] == '2':
             order_id = text_parts[3]
             try:
@@ -86,7 +80,6 @@ def ussd_callback(request):
             except Order.DoesNotExist:
                 response = f"END Order #{order_id} not found."
 
-        # ── STAFF: GOT NEW STATUS — update order ─────────────────────────
         elif level == 5 and text_parts[0] == '2' and text_parts[2] == '2':
             order_id   = text_parts[3]
             status_map = {
@@ -100,8 +93,14 @@ def ussd_callback(request):
             try:
                 order = Order.objects.get(id=order_id)
                 if new_status:
+                    old_status = order.status
                     order.status = new_status
                     order.save()
+
+                    # ✅ Send SMS when order is marked ready
+                    if new_status == 'ready' and old_status != 'ready':
+                        send_order_ready_sms(order)
+
                     response  = f"END Order #{order.id} updated!\n"
                     response += f"Status: {new_status.upper()}\n"
                     response += f"Customer: {order.customer_name}"
@@ -110,7 +109,6 @@ def ussd_callback(request):
             except Order.DoesNotExist:
                 response = f"END Order #{order_id} not found."
 
-        # ── STAFF: VIEW TODAY'S REVENUE ──────────────────────────────────
         elif level == 3 and text_parts[0] == '2' and text_parts[2] == '3':
             today = timezone.now().date()
             orders = Order.objects.filter(created_at__date=today)
@@ -121,7 +119,6 @@ def ussd_callback(request):
             response += f"Revenue: KSh {total_revenue}\n"
             response += f"Date: {today.strftime('%d %b %Y')}"
 
-        # ── CUSTOMER SUBMENU ─────────────────────────────────────────────
         elif text == '1*1':
             response = "CON Enter your Full Name:"
 
@@ -144,7 +141,6 @@ def ussd_callback(request):
             else:
                 response = "END No services available."
 
-        # ── PLACE ORDER FLOW ─────────────────────────────────────────────
         elif level == 3 and text_parts[0] == '1' and text_parts[1] == '1':
             response = "CON Enter your Phone Number\n(e.g. 0712345678):"
 
@@ -196,6 +192,10 @@ def ussd_callback(request):
                     price=service.price,
                 )
                 total = service.price * quantity
+
+                # ✅ Send SMS notification
+                send_order_received_sms(order)
+
                 response  = "END Order placed!\n"
                 response += f"Order ID: #{order.id}\n"
                 response += f"Service: {service.name}\n"
@@ -225,6 +225,10 @@ def ussd_callback(request):
                     price=service.price,
                 )
                 total = service.price * quantity
+
+                # ✅ Send SMS notification
+                send_order_received_sms(order)
+
                 response  = "END Order placed!\n"
                 response += f"Order ID: #{order.id}\n"
                 response += f"Service: {service.name}\n"
@@ -234,7 +238,6 @@ def ussd_callback(request):
             except Exception as e:
                 response = f"END Error: {str(e)}"
 
-        # ── CHECK ORDER STATUS ────────────────────────────────────────────
         elif level == 3 and text_parts[0] == '1' and text_parts[1] == '2':
             order_id = text_parts[2]
             try:
@@ -250,19 +253,16 @@ def ussd_callback(request):
             except Order.DoesNotExist:
                 response = f"END Order #{order_id} not found."
 
-        # ── PAYMENT FLOW ──────────────────────────────────────────────────
         elif level == 3 and text_parts[0] == '1' and text_parts[1] == '3':
             order_id = text_parts[2]
             try:
                 order = Order.objects.get(id=order_id)
                 total = order.total_price()
 
-                # Format phone number to 2547XXXXXXXX
                 phone = order.phone_number.strip().replace('+', '').replace(' ', '')
                 if phone.startswith('0'):
                     phone = '254' + phone[1:]
 
-                # Trigger real STK push
                 from payments.mpesa import stk_push
                 from payments.models import Payment, MpesaPayment
 
@@ -290,7 +290,6 @@ def ussd_callback(request):
             except Exception as e:
                 response = f"END Payment error: {str(e)}"
 
-        # ── FALLBACK ──────────────────────────────────────────────────────
         else:
             response = "END Invalid selection. Please try again."
 
