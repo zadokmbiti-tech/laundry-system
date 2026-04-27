@@ -521,8 +521,7 @@
     // ── Phone validation ──────────────────────────────────────────────
     // Valid: 07XXXXXXXX (exactly 10 digits starting with 07)
     //        +2547XXXXXXXX (exactly 13 chars: +254 + 9 digits starting with 7)
-    const PHONE_REGEX = /^(07\d{8}|\+2547\d{8})$/;
-
+const PHONE_REGEX = /^(0[17]\d{8}|\+254[17]\d{8})$/;
     function validatePhone(value) {
         const cleaned = value.replace(/\s/g, ''); // strip spaces
         return PHONE_REGEX.test(cleaned) ? cleaned : null;
@@ -548,7 +547,7 @@
             return;
         }
         if (!validatePhone(cleaned)) {
-            showError(this, 'phone-error', 'Enter a valid number: 07XXXXXXXX or +2547XXXXXXXX');
+            showError(this, 'phone-error', 'Enter a valid number: 07XXXXXXXX, 01XXXXXXXX, +2547XXXXXXXX or +2541XXXXXXXX');
         } else {
             clearError(this, 'phone-error');
         }
@@ -582,7 +581,7 @@
             if (valid) phoneInput.focus();
             valid = false;
         } else if (!validatePhone(cleaned)) {
-            showError(phoneInput, 'phone-error', 'Enter a valid number: 07XXXXXXXX or +2547XXXXXXXX');
+            showError(phoneInput, 'phone-error', 'Enter a valid number: 07XXXXXXXX, 01XXXXXXXX, +2547XXXXXXXX or +2541XXXXXXXX');
             if (valid) phoneInput.focus();
             valid = false;
         } else {
