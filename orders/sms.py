@@ -16,7 +16,7 @@ from django.conf import settings
 def _send_sms(message: str, phone: str) -> bool:
     print(f"[DEBUG] USERNAME={settings.AT_USERNAME}")
     print(f"[DEBUG] API_KEY={settings.AT_API_KEY[:20]}...")  # only first 20 chars
-    url = "https://api.africastalking.com/version1/messaging"
+    url = "https://api.sandbox.africastalking.com/version1/messaging"
 
 
 def normalise_phone(phone: str) -> str:
@@ -32,7 +32,7 @@ def normalise_phone(phone: str) -> str:
 
 
 def _send_sms(message: str, phone: str) -> bool:
-    url = "https://api.africastalking.com/version1/messaging"
+    url = "https://api.sandbox.africastalking.com/version1/messaging"
 
     payload = urllib.parse.urlencode({
         "username": settings.AT_USERNAME,
