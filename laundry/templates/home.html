@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load pwa %}
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -209,7 +210,6 @@
             position: absolute;
             right: 0; top: 0; bottom: 0;
             width: 50%;
-            background: url('https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=800&q=80') center/cover no-repeat;
             opacity: 0.25;
             mask-image: linear-gradient(to right, transparent 0%, black 40%);
             -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%);
@@ -318,7 +318,7 @@
 
 <!-- HERO -->
 <section class="hero">
-    <div class="hero-image"></div>
+    <div class="hero-image" style="background: url('{% static "images/hero-bg.jpg" %}') center/cover no-repeat;"></div>
     <div class="hero-content">
         <div class="hero-badge">
             Fresh Wash Laundry Services
