@@ -4,6 +4,7 @@ from orders.models import Order, OrderItem
 from services.models import Service
 from orders.sms import send_order_received_sms, send_order_ready_sms
 from django.utils import timezone
+import traceback
 
 SERVICES_PER_PAGE = 5
 STAFF_PIN = '0011'
@@ -97,7 +98,6 @@ def ussd_callback(request):
                     order.status = new_status
                     order.save()
 
-                    # ✅ Send SMS when order is marked ready
                     if new_status == 'ready' and old_status != 'ready':
                         send_order_ready_sms(order)
 
@@ -192,10 +192,7 @@ def ussd_callback(request):
                     price=service.price,
                 )
                 total = service.price * quantity
-
-                # ✅ Send SMS notification
                 send_order_received_sms(order)
-
                 response  = "END Order placed!\n"
                 response += f"Order ID: #{order.id}\n"
                 response += f"Service: {service.name}\n"
@@ -203,6 +200,7 @@ def ussd_callback(request):
                 response += f"Total: KSh {total}\n"
                 response += "Thank you for choosing FreshWash!"
             except Exception as e:
+                traceback.print_exc()  # ← prints full error to terminal
                 response = f"END Error: {str(e)}"
 
         elif level == 7 and text_parts[0] == '1' and text_parts[1] == '1' and text_parts[4] == '6':
@@ -225,10 +223,7 @@ def ussd_callback(request):
                     price=service.price,
                 )
                 total = service.price * quantity
-
-                # ✅ Send SMS notification
                 send_order_received_sms(order)
-
                 response  = "END Order placed!\n"
                 response += f"Order ID: #{order.id}\n"
                 response += f"Service: {service.name}\n"
@@ -236,6 +231,7 @@ def ussd_callback(request):
                 response += f"Total: KSh {total}\n"
                 response += "Thank you for choosing FreshWash!"
             except Exception as e:
+                traceback.print_exc()  # ← prints full error to terminal
                 response = f"END Error: {str(e)}"
 
         elif level == 3 and text_parts[0] == '1' and text_parts[1] == '2':
@@ -258,16 +254,12 @@ def ussd_callback(request):
             try:
                 order = Order.objects.get(id=order_id)
                 total = order.total_price()
-
                 phone = order.phone_number.strip().replace('+', '').replace(' ', '')
                 if phone.startswith('0'):
                     phone = '254' + phone[1:]
-
                 from payments.mpesa import stk_push
                 from payments.models import Payment, MpesaPayment
-
                 result = stk_push(phone, total, order.id)
-
                 if result.get("ResponseCode") == "0":
                     MpesaPayment.objects.create(
                         order_id=order.id,
@@ -284,10 +276,10 @@ def ussd_callback(request):
                 else:
                     error = result.get("errorMessage") or result.get("ResponseDescription", "Failed")
                     response = f"END Payment failed: {error}"
-
             except Order.DoesNotExist:
                 response = f"END Order #{order_id} not found."
             except Exception as e:
+                traceback.print_exc()
                 response = f"END Payment error: {str(e)}"
 
         else:

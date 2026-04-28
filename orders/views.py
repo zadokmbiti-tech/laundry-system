@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from .models import Order, OrderItem
 from services.models import Service
 from .sms import send_order_received_sms, send_order_ready_sms
+from payments.models import Payment
 
 
 def order_detail(request, order_id):
@@ -59,8 +61,33 @@ def customer_order(request):
 # STAFF DASHBOARD
 @login_required
 def staff_dashboard(request):
-    orders = Order.objects.all().order_by("-created_at")
-    return render(request, "orders/staff_dashboard.html", {"orders": orders})
+    today = timezone.now().date()
+    limit = request.GET.get('limit', '10')
+
+    all_orders = Order.objects.all().order_by("-created_at")
+
+    if limit == 'all':
+        orders = all_orders
+    elif limit == '100':
+        orders = all_orders[:100]
+    else:
+        orders = all_orders[:10]
+
+    today_qs = Order.objects.filter(created_at__date=today)
+
+    return render(request, "orders/staff_dashboard.html", {
+        "orders": orders,
+        "limit": limit,
+        "total_orders": Order.objects.count(),
+        "today_orders": today_qs.count(),
+        "total_customers": today_qs.values('phone_number').distinct().count(),
+        "today_revenue": sum(o.total_price() for o in today_qs),
+        "received_orders":  Order.objects.filter(status='received').count(),
+        "washing_orders":   Order.objects.filter(status='washing').count(),
+        "ready_orders":     Order.objects.filter(status='ready').count(),
+        "delivered_orders": Order.objects.filter(status='delivered').count(),
+        "payments": Payment.objects.select_related('order').order_by('-id')[:20],
+    })
 
 
 # STAFF UPDATE ORDER STATUS
